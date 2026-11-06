@@ -9,7 +9,7 @@ const DEFAULT_PROJECTS_LIST = [
     startDate: "13/04/2026",
     endDate: "29/06/2026",
     description: "Implantação Intelup nas plantas Matriz e Marituba – integração com PIMS e parametrização de módulos.",
-    team: "GP Intelup: Luis F. de Souza GP Caeté: José Ailton das Chagas Líder técnico: Felipe Camossi",
+    team: "GP Intelup: Fulano de Tal GP Caeté: Beltrano de Tal Líder técnico: Sicrano de Tal",
     activities: [
       { 
         id: 1, 
@@ -21,7 +21,7 @@ const DEFAULT_PROJECTS_LIST = [
           { id: 2, name: "Aprovação do orçamento do projeto", completed: true }
         ],
         attentionPoints: [
-          "Representantes locais: Italaine (Matriz) e Benedito (Marituba)"
+          "Representantes locais: Representante A (Matriz) e Representante B (Marituba)"
         ],
         projectImpacts: [
           "Sem impactos identificados no período"
@@ -182,7 +182,7 @@ const DEFAULT_PROJECTS_LIST = [
     startDate: "01/05/2026",
     endDate: "30/08/2026",
     description: "Instalação de painéis solares fotovoltaicos e cabeamento estruturado da subestação de energia.",
-    team: "GP Intelup: Mariana Santos GP Solar: Ricardo Silva Líder técnico: André Pinheiro",
+    team: "GP Intelup: Fulana de Tal GP Solar: Beltrana de Tal Líder técnico: Sicrana de Tal",
     activities: [
       {
         id: 1,
