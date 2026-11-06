@@ -1,0 +1,21 @@
+{
+  "name": "project-accounting",
+  "version": "1.0.0",
+  "description": "Project Accounting - Execução Nativa",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --env-file-if-exists=.env --watch server.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "intel:run": "node --env-file-if-exists=.env intelligence/cli.js run",
+    "intel:reclassify": "node --env-file-if-exists=.env intelligence/cli.js reclassify",
+    "auth:hash": "node lib/hash-password.js",
+    "intel:check": "node --env-file-if-exists=.env intelligence/cli.js check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=22.9"
+  }
+}

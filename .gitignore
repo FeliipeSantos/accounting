@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.env
+
+# Dados reais: ficam só na máquina/VPS (o servidor cria db.json vazio se não existir)
+db.json
+intelligence-db.json
+*.json.*.tmp
+backups/
+
+# Documentos internos
+*.docx
