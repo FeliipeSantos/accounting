@@ -39,18 +39,14 @@ sudo chmod 750 /var/lib/project-accounting
 ## 2. Instalar o código
 
 ```bash
-sudo git clone <URL-do-repositorio> /opt/project-accounting
+sudo git clone https://github.com/FeliipeSantos/accounting.git /opt/project-accounting
 cd /opt/project-accounting
 sudo chown -R root:project-accounting /opt/project-accounting
 ```
 
 O projeto não tem dependências npm: não é preciso `npm install`.
 
-Rode os testes no servidor para confirmar o ambiente:
-
-```bash
-npm test
-```
+O repositório traz só o necessário para rodar. Os testes automáticos ficam na máquina de desenvolvimento: rode `npm test` lá **antes** de enviar cada atualização ao GitHub.
 
 ## 3. Levar os dados atuais
 
@@ -161,11 +157,13 @@ Esperado: `9 de 9 fontes acessíveis`. Se alguma falhar (ex.: bloqueio de IP), e
 
 ## 8. Atualizar a aplicação
 
+Na máquina de desenvolvimento: rode `npm test` e envie ao GitHub (`git push`). Depois, na VPS:
+
 ```bash
 cd /opt/project-accounting
 sudo git pull
-npm test
 sudo systemctl restart project-accounting
+curl -s http://127.0.0.1:8080/healthz
 ```
 
 Reiniciar encerra as sessões abertas (os usuários entram de novo). Se houver coleta em andamento, o serviço aguarda até 25 s para ela terminar.

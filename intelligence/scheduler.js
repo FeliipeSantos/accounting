@@ -105,4 +105,4 @@ function startScheduler(options = {}) {
   };
 }
 
-module.exports = { startScheduler, isDue, computeNextRunAt, isSchedulerEnabled, MAX_FAILED_ATTEMPTS_PER_DAY, RETRY_AFTER_FAILURE_MS };
+module.exports = { startScheduler, isDue, computeNextRunAt, isSchedulerEnabled };

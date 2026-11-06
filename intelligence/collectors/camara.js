@@ -45,4 +45,4 @@ async function collect({ fetchJson, today, since }) {
   return items;
 }
 
-module.exports = { collect, parsePage };
+module.exports = { collect };

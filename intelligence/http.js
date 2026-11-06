@@ -91,4 +91,4 @@ async function fetchJson(url, options = {}) {
   }
 }
 
-module.exports = { fetchText, fetchJson, isOfficialUrl, CollectorHttpError };
+module.exports = { fetchText, fetchJson, isOfficialUrl };

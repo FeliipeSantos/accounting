@@ -10,3 +10,8 @@ backups/
 
 # Documentos internos
 *.docx
+
+# Só para desenvolvimento: ficam na máquina local, não vão para o servidor
+tests/
+.claude/
+intelligence/SOURCES.md

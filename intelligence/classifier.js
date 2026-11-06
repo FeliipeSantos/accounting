@@ -155,4 +155,4 @@ function classify(item, enabledSubjects) {
   };
 }
 
-module.exports = { classify, matchSubjects, matchSubjectsDetailed, actWeight, RULES_DESCRIPTION };
+module.exports = { classify, matchSubjects, actWeight, RULES_DESCRIPTION };

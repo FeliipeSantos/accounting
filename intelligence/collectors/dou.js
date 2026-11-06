@@ -61,4 +61,4 @@ async function collect({ fetchText, today, since }) {
   return items;
 }
 
-module.exports = { collect, parseDouPage, isOfInterest };
+module.exports = { collect, parseDouPage };

@@ -238,4 +238,4 @@ function isRunning() {
   return currentRun !== null;
 }
 
-module.exports = { runMonitoring, reclassifyAll, isRunning, hasActiveRun, MonitorBusyError, sanitize, BACKFILL_DAYS };
+module.exports = { runMonitoring, reclassifyAll, isRunning, hasActiveRun, MonitorBusyError, sanitize };

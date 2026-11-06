@@ -109,4 +109,4 @@ function addDays(isoDate, days) {
   return date.toISOString().slice(0, 10);
 }
 
-module.exports = { decodeEntities, htmlToText, cleanText, normalizeForMatch, parseBrDate, localIsoDate, addDays, MONTHS };
+module.exports = { decodeEntities, htmlToText, cleanText, normalizeForMatch, parseBrDate, localIsoDate, addDays };

@@ -1,250 +1,3 @@
-// Default projects list defined locally (replaces defaultData.js)
-const DEFAULT_PROJECTS_LIST = [
-  {
-    id: "caete-ne",
-    name: "Projeto Caeté NE",
-    reportDate: "04 / 05 / 2026",
-    percentPlanned: 17,
-    percentActual: 26.99,
-    startDate: "13/04/2026",
-    endDate: "29/06/2026",
-    description: "Implantação Intelup nas plantas Matriz e Marituba – integração com PIMS e parametrização de módulos.",
-    team: "GP Intelup: Fulano de Tal GP Caeté: Beltrano de Tal Líder técnico: Sicrano de Tal",
-    activities: [
-      { 
-        id: 1, 
-        name: "Abertura do projeto", 
-        progress: 100, 
-        status: "Concluído",
-        subActivities: [
-          { id: 1, name: "Elaboração do Termo de Abertura", completed: true },
-          { id: 2, name: "Aprovação do orçamento do projeto", completed: true }
-        ],
-        attentionPoints: [
-          "Representantes locais: Representante A (Matriz) e Representante B (Marituba)"
-        ],
-        projectImpacts: [
-          "Sem impactos identificados no período"
-        ],
-        actionPlans: [
-          "Nenhum plano de ação em curso no período"
-        ]
-      },
-      { 
-        id: 2, 
-        name: "Provisionamento de infraestrutura", 
-        progress: 100, 
-        status: "Concluído",
-        subActivities: [
-          { id: 1, name: "Provisionamento de servidores na nuvem", completed: true },
-          { id: 2, name: "Configuração dos acessos de rede e VPN", completed: true }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 3, 
-        name: "Instalação e configuração do coletor OPC", 
-        progress: 75, 
-        status: "Atrasado",
-        subActivities: [
-          { id: 1, name: "Instalação física do coletor OPC", completed: true },
-          { id: 2, name: "Configuração das portas de rede", completed: true },
-          { id: 3, name: "Mapeamento inicial de Tags OPC", completed: true },
-          { id: 4, name: "Teste de ping e conectividade de rede externa", completed: false }
-        ],
-        attentionPoints: [
-          "Instalação física pendente em Marituba por falta de liberação de área",
-          "Necessário confirmar liberação de rede com a TI da planta"
-        ],
-        projectImpacts: [
-          "Risco de atrasar homologação do PIMS em Marituba"
-        ],
-        actionPlans: [
-          "Reunião de alinhamento com a TI agendada para amanhã às 14:00"
-        ]
-      },
-      { 
-        id: 4, 
-        name: "Configuração integração Intelup x PIMS - Laboratório", 
-        progress: 20, 
-        status: "Em andamento",
-        subActivities: [
-          { id: 1, name: "Homologação do PIMS local", completed: true },
-          { id: 2, name: "Mapeamento das tabelas de dados laboratoriais", completed: false },
-          { id: 3, name: "Instalação do agente de integração Intelup", completed: false },
-          { id: 4, name: "Validação de escrita no banco centralizado", completed: false },
-          { id: 5, name: "Configuração de contingência local", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 5, 
-        name: "Parametrização MEPO", 
-        progress: 55, 
-        status: "Em andamento",
-        subActivities: [
-          { id: 1, name: "Definição de regras de parada de máquina", completed: true },
-          { id: 2, name: "Configuração do módulo de eficiência global (OEE)", completed: true },
-          { id: 3, name: "Parametrização das justificativas de paradas", completed: true },
-          { id: 4, name: "Criação dos dashboards de OEE em tempo real", completed: true },
-          { id: 5, name: "Configuração dos turnos operacionais", completed: true },
-          { id: 6, name: "Testes de integridade de dados operacionais", completed: true },
-          { id: 7, name: "Treinamento básico para operadores de sala", completed: false },
-          { id: 8, name: "Validação de relatórios consolidados por turno", completed: false },
-          { id: 9, name: "Configuração de alertas e alarmes de OEE", completed: false },
-          { id: 10, name: "Parametrização de metas diárias de produção", completed: false },
-          { id: 11, name: "Homologação do módulo com a diretoria", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 6, 
-        name: "Parametrização ICF", 
-        progress: 0, 
-        status: "Não iniciado",
-        subActivities: [
-          { id: 1, name: "Mapeamento das tags de processo ICF", completed: false },
-          { id: 2, name: "Parametrização das regras de alarmes ICF", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 7, 
-        name: "Parametrização CEP", 
-        progress: 0, 
-        status: "Não iniciado",
-        subActivities: [
-          { id: 1, name: "Coleta de amostras de dados estatísticos (CEP)", completed: false },
-          { id: 2, name: "Configuração dos limites de controle estatístico", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 8, 
-        name: "Parametrização GMC", 
-        progress: 0, 
-        status: "Não iniciado",
-        subActivities: [
-          { id: 1, name: "Mapeamento dos motores e equipamentos GMC", completed: false },
-          { id: 2, name: "Parametrização das rotinas de manutenção", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      { 
-        id: 9, 
-        name: "Treinamentos e Operação Assistida", 
-        progress: 0, 
-        status: "Não iniciado",
-        subActivities: [
-          { id: 1, name: "Preparação do material didático de treinamento", completed: false },
-          { id: 2, name: "Agendamento das turmas de operação assistida", completed: false },
-          { id: 3, name: "Execução dos testes assistidos em campo", completed: false }
-        ],
-        attentionPoints: [
-          "Operação assistida necessária no início da safra (set/26)"
-        ],
-        projectImpacts: [],
-        actionPlans: []
-      }
-    ],
-    kanban: {
-      done: [
-        "Conexão com servidor OPC na Unidade Matriz realizado com sucesso;"
-      ],
-      doing: [
-        "Levantamento de TAGs (automação + laboratório) em Marituba",
-        "Validação conectividade em Marituba"
-      ],
-      todo: [
-        "Iniciar cadastramento dos TAGs no coletor Matriz",
-        "Avançar com configuração dos dashbords Matriz"
-      ]
-    }
-  },
-  {
-    id: "solar-nordeste",
-    name: "Projeto Solar Nordeste",
-    reportDate: "08 / 06 / 2026",
-    percentPlanned: 30,
-    percentActual: 60.00,
-    startDate: "01/05/2026",
-    endDate: "30/08/2026",
-    description: "Instalação de painéis solares fotovoltaicos e cabeamento estruturado da subestação de energia.",
-    team: "GP Intelup: Fulana de Tal GP Solar: Beltrana de Tal Líder técnico: Sicrana de Tal",
-    activities: [
-      {
-        id: 1,
-        name: "Licenciamento ambiental",
-        progress: 100,
-        status: "Concluído",
-        subActivities: [
-          { id: 1, name: "Obtenção da Licença de Instalação", completed: true },
-          { id: 2, name: "Aprovação do relatório de impacto ambiental", completed: true }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      },
-      {
-        id: 2,
-        name: "Montagem dos suportes de solo",
-        progress: 80,
-        status: "Em andamento",
-        subActivities: [
-          { id: 1, name: "Fundação das estacas metálicas", completed: true },
-          { id: 2, name: "Fixação das travessas de alumínio", completed: true },
-          { id: 3, name: "Alinhamento das estruturas dos trackers", completed: false }
-        ],
-        attentionPoints: [
-          "Atraso na entrega das travessas de alumínio pela distribuidora"
-        ],
-        projectImpacts: [
-          "Risco de atraso nas etapas subsequentes de fixação de placas"
-        ],
-        actionPlans: [
-          "Contato direto com fornecedor local para lote emergencial"
-        ]
-      },
-      {
-        id: 3,
-        name: "Fixação de módulos fotovoltaicos",
-        progress: 0,
-        status: "Não iniciado",
-        subActivities: [
-          { id: 1, name: "Descarregamento dos contêineres de painéis", completed: false },
-          { id: 2, name: "Instalação física dos painéis nas estruturas", completed: false }
-        ],
-        attentionPoints: [],
-        projectImpacts: [],
-        actionPlans: []
-      }
-    ],
-    kanban: {
-      done: [
-        "Licença de Instalação aprovada;"
-      ],
-      doing: [
-        "Fixação estrutural das estacas metálicas de sustentação"
-      ],
-      todo: [
-        "Aguardar chegada do lote de painéis solares para fixação"
-      ]
-    }
-  }
-];
-
 // Initialize State
 let projectsList = [];
 let activeProjectId = null;
@@ -292,13 +45,6 @@ const SCREEN_MODULES = {
 // A sessão real fica no servidor (cookie HttpOnly); estes valores só servem para exibição
 const SESSION_KEY = 'project_manager_session';
 const SESSION_USER_KEY = 'project_manager_user';
-
-/**
- * Returns the user name of the current session (display only), or null when logged out.
- */
-function getCurrentUser() {
-  return localStorage.getItem(SESSION_USER_KEY);
-}
 
 function clearLocalSession() {
   localStorage.removeItem(SESSION_KEY);
@@ -405,34 +151,21 @@ function initData() {
     });
 }
 
+// True while the project list could not be loaded: saving stays blocked so an
+// incomplete list in memory can never overwrite the real data on the server.
+let projectsLoadFailed = false;
+
 function loadProjects(callback) {
   apiFetch('/api/projects')
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
     .then(data => {
+      if (!Array.isArray(data)) throw new Error('Resposta inesperada do servidor');
       projectsList = data;
-      
-      // If server database is empty, perform local storage migrations or fallback
-      if (!projectsList || projectsList.length === 0) {
-        const browserSaved = localStorage.getItem('projects_list_data');
-        const browserOldSaved = localStorage.getItem('project_status_report_data');
-        
-        if (browserSaved) {
-          projectsList = JSON.parse(browserSaved);
-          console.log("Migrado localStorage.projects_list_data para db.json");
-        } else if (browserOldSaved) {
-          const oldProject = JSON.parse(browserOldSaved);
-          oldProject.id = "caete-ne";
-          projectsList = [oldProject];
-          const defaultList = JSON.parse(JSON.stringify(DEFAULT_PROJECTS_LIST));
-          const secondProject = defaultList.find(p => p.id === "solar-nordeste");
-          if (secondProject) projectsList.push(secondProject);
-          console.log("Migrado localStorage.project_status_report_data para db.json");
-        } else {
-          projectsList = JSON.parse(JSON.stringify(DEFAULT_PROJECTS_LIST));
-        }
-        saveToStorage();
-      }
-      
+      projectsLoadFailed = false;
+
       // Clean migration: normalize IDs and arrays for all projects
       projectsList.forEach(p => {
         if (!p.id) p.id = 'proj-' + Date.now() + Math.random().toString(36).substr(2, 5);
@@ -449,16 +182,22 @@ function loadProjects(callback) {
       if (callback) callback();
     })
     .catch(err => {
-      // sessão expirada: já voltou para o login; não carrega a lista padrão
+      // sessão expirada: já voltou para o login
       if (err.sessionExpired) return;
       console.error("Erro ao carregar dados do servidor:", err);
-      // Fallback to local default list just in case
-      projectsList = JSON.parse(JSON.stringify(DEFAULT_PROJECTS_LIST));
+      // sem dados falsos: lista vazia com aviso, e salvamento bloqueado
+      projectsList = [];
+      projectsLoadFailed = true;
       if (callback) callback();
     });
 }
 
 function saveToStorage() {
+  if (projectsLoadFailed) {
+    // a lista não foi carregada: salvar agora apagaria os projetos do servidor
+    alert('Os projetos não foram carregados do servidor, então nada foi salvo. Recarregue a página e tente novamente.');
+    return;
+  }
   apiFetch('/api/projects', {
     method: 'POST',
     headers: {
@@ -500,50 +239,6 @@ function selectProject(id) {
     
     showScreen('app-layout');
     renderAll();
-    populateSidebar();
-  }
-}
-
-function resetToDefault() {
-  if (confirm("Deseja realmente restaurar os dados originais deste projeto? Todas as suas subatividades e alterações serão perdidas.")) {
-    const defaultProject = DEFAULT_PROJECTS_LIST.find(p => p.id === activeProjectId);
-    const idx = projectsList.findIndex(p => p.id === activeProjectId);
-    
-    if (defaultProject && idx !== -1) {
-      projectsList[idx] = JSON.parse(JSON.stringify(defaultProject));
-      projectData = projectsList[idx];
-    } else if (idx !== -1) {
-      // For user-created projects, clear all progress to initial
-      projectData.activities = [
-        {
-          id: 1,
-          name: "Fase de Planejamento",
-          progress: 0,
-          status: "Não iniciado",
-          subActivities: [
-            { id: 1, name: "Definição do escopo inicial", completed: false }
-          ],
-          attentionPoints: [],
-          projectImpacts: [],
-          actionPlans: []
-        }
-      ];
-      projectData.attentionPoints = [];
-      projectData.projectImpacts = [];
-      projectData.actionPlans = [];
-      projectData.kanban = { done: [], doing: [], todo: [] };
-    }
-    
-    if (projectData.activities.length > 0) {
-      selectedActivityId = projectData.activities[0].id;
-    } else {
-      selectedActivityId = null;
-    }
-    
-    recalculateProjectProgress();
-    saveToStorage();
-    renderAll();
-    populateSidebar();
   }
 }
 
@@ -783,7 +478,6 @@ function selectActivity(id) {
   
   renderSubActivities();
   renderAttentionLists();
-  populateSidebar();
 }
 
 // Render Main Activities table
@@ -928,7 +622,6 @@ function renderActivitiesTable() {
       if (activity) {
         activity[field] = val;
         projectData = activeProj; // Sync global
-        populateSidebar();
         
         if (actId === selectedActivityId) {
           const subTitleEl = document.getElementById('db-subactivities-subtitle');
@@ -971,7 +664,6 @@ function renderActivitiesTable() {
         projectData = activeProj;
         recalculateProjectProgress();
         renderAll();
-        populateSidebar();
       }
     });
     select.addEventListener('click', (e) => {
@@ -1034,7 +726,6 @@ function renderActivitiesTable() {
           projectData = activeProj;
           recalculateProjectProgress();
           renderAll();
-          populateSidebar();
         }
       }
     });
@@ -1096,7 +787,6 @@ function renderActivitiesTable() {
 
         projectData = activeProj;
         renderAll();
-        populateSidebar();
       });
     });
   }
@@ -1162,7 +852,6 @@ function renderSubActivities() {
       recalculateActivityProgress(activity);
       recalculateProjectProgress();
       renderAll();
-      populateSidebar();
       if (!isEditMode) {
         saveToStorage();
       }
@@ -1181,7 +870,6 @@ function renderSubActivities() {
       recalculateActivityProgress(activity);
       recalculateProjectProgress();
       renderAll();
-      populateSidebar();
     });
     
     textSpan.addEventListener('keydown', (e) => {
@@ -1200,7 +888,6 @@ function renderSubActivities() {
         recalculateActivityProgress(activity);
         recalculateProjectProgress();
         renderAll();
-        populateSidebar();
       });
     }
     
@@ -1228,7 +915,6 @@ function handleAddSubActivity() {
     recalculateProjectProgress();
     input.value = '';
     renderAll();
-    populateSidebar();
   }
 }
 
@@ -1696,9 +1382,16 @@ function renderProjectsGrid() {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
   
+  if (projectsLoadFailed) {
+    grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--primary-red); padding: 40px; border: 1px dashed var(--primary-red); border-radius: var(--radius-md); background: white;">
+      Não foi possível carregar os projetos do servidor. Recarregue a página em instantes.
+    </div>`;
+    return;
+  }
+
   const searchVal = document.getElementById('project-search-input').value.toLowerCase().trim();
   const filtered = projectsList.filter(p => p.name.toLowerCase().includes(searchVal));
-  
+
   if (filtered.length === 0) {
     grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background: white;">
       Nenhum projeto encontrado. Clique em "+ Novo Projeto" para criar um!
@@ -1903,7 +1596,3 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-function populateSidebar() {
-  // Mock function to prevent ReferenceErrors since the sidebar elements were removed from the HTML layout
-  console.log("populateSidebar called (no-op)");
-}

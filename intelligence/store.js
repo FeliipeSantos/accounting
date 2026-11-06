@@ -6,9 +6,6 @@ const { SOURCES, SUBJECTS } = require('./catalog');
 
 const DEFAULT_FILE = path.join(__dirname, '..', 'intelligence-db.json');
 
-// Collectable sources of the first catalog, which saved settings without knownSources.
-const LEGACY_KNOWN_SOURCES = ['dou', 'receita', 'fazenda', 'confaz', 'sped', 'esocial'];
-
 /**
  * Builds the initial content of a fresh module database.
  */
@@ -41,8 +38,8 @@ function normalize(data) {
 
   // Fontes que viraram coletáveis depois do último salvamento entram ativas
   const saved = data.settings || {};
-  const known = new Set(saved.knownSources || LEGACY_KNOWN_SOURCES);
   const collectable = SOURCES.filter((s) => s.collectable).map((s) => s.id);
+  const known = new Set(saved.knownSources || collectable);
   const added = collectable.filter((id) => !known.has(id));
   if (added.length && saved.enabledSources) {
     result.settings.enabledSources = [...new Set([...saved.enabledSources, ...added])];
@@ -96,4 +93,4 @@ function createStore(filePath = process.env.INTEL_DB_FILE || DEFAULT_FILE) {
   return { filePath, read, update };
 }
 
-module.exports = { createStore, getDefaultData };
+module.exports = { createStore };

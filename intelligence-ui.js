@@ -17,7 +17,6 @@
   const METHOD_LABELS = {
     'dou-json': 'JSON oficial',
     api: 'API oficial',
-    rss: 'Feed RSS',
     html: 'Página oficial',
   };
 

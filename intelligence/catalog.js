@@ -7,7 +7,7 @@
  * @property {string} id Stable identifier used in the database.
  * @property {string} name Display name.
  * @property {string} url Official URL used for collection or reference.
- * @property {'dou-json'|'api'|'rss'|'html'|'none'} method Collection method.
+ * @property {'dou-json'|'api'|'html'|'none'} method Collection method.
  * @property {boolean} collectable Whether direct collection is technically viable.
  * @property {string} coverage How the source content reaches the module.
  * @property {string[]} [defaultSubjects] Subjects implied by the source itself

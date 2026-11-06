@@ -28,7 +28,6 @@
   --badge-todo-text: #5e6c84;
 
   /* Sidebar width */
-  --sidebar-width: 420px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
@@ -113,16 +112,6 @@ body {
   border-color: rgba(255,255,255,0.5);
 }
 
-#btn-logout-selector {
-  color: var(--text-dark);
-  border-color: var(--border-light);
-  background-color: white;
-}
-#btn-logout-selector:hover {
-  background-color: var(--bg-app);
-  border-color: var(--text-muted);
-}
-
 .btn-success {
   background-color: var(--badge-done-bg);
   color: var(--badge-done-text);
@@ -139,45 +128,8 @@ body {
   position: relative;
 }
 
-/* Sidebar styling */
-#editor-sidebar {
-  width: var(--sidebar-width);
-  background: white;
-  border-right: 1px solid var(--border-light);
-  overflow-y: auto;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 24px;
-  flex-shrink: 0;
-  box-shadow: var(--shadow-md);
-}
-
-#editor-sidebar.collapsed {
-  margin-left: calc(-1 * var(--sidebar-width));
-}
-
-.sidebar-section {
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.sidebar-section h3 {
-  font-size: 0.95rem;
-  color: var(--primary-navy);
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .form-group {
   margin-bottom: 12px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
 }
 
 label {
@@ -205,14 +157,6 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
   border-color: var(--primary-blue);
   background-color: white;
-}
-
-/* List/Table Editors in Sidebar */
-.item-edit-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
 }
 
 .btn-icon {
@@ -741,46 +685,7 @@ body:not(.printing) .editable-text:hover {
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 
-/* Modal styling for direct cell/item text editing */
-.edit-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.4);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  width: 450px;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 16px;
-}
-
 /* Inline activities editor styles */
-.inline-progress-input::-webkit-outer-spin-button,
-.inline-progress-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.inline-progress-input {
-  -moz-appearance: textfield;
-}
-
-.activities-table input.inline-progress-input:focus,
 .activities-table select.inline-status-select:focus {
   border-color: var(--primary-blue) !important;
   outline: none;
@@ -858,9 +763,7 @@ body:not(.printing) .editable-kanban-text:hover {
     height: 100% !important;
   }
   
-  #app-header, 
-  #editor-sidebar,
-  .modal,
+  #app-header,
   .btn,
   .btn-add-item,
   .btn-icon,
