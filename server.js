@@ -4,26 +4,32 @@ const path = require('path');
 const intelligence = require('./intelligence/routes');
 const intelligenceScheduler = require('./intelligence/scheduler');
 const { createAuth } = require('./lib/auth');
+const { getDatabase } = require('./lib/db');
+const { ensureUsers } = require('./lib/users');
+const { startBackupSchedule } = require('./lib/backup');
+const projects = require('./projects/routes');
 
 // Configuração por variáveis de ambiente (arquivo .env; veja .env.example)
 const PORT = process.env.PORT !== undefined ? Number(process.env.PORT) : 8080;
 // Em produção use HOST=127.0.0.1 (só o Nginx acessa); sem HOST, escuta em todas as interfaces
 const HOST = process.env.HOST || undefined;
-const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'db.json');
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const EXPECTED_TIMEZONE = 'America/Sao_Paulo';
 
 // Files and folders that must never be served as static content
 // (secrets, data files and server-side code).
-const BLOCKED_STATIC_FILES = new Set(['intelligence-db.json', 'db.json', 'server.js', 'package.json', 'package-lock.json']);
-const BLOCKED_STATIC_DIRS = new Set(['intelligence', 'lib', 'tests', 'deploy', 'node_modules']);
-// documentação (DEPLOY.md etc.) descreve a infraestrutura: não é servida
-const BLOCKED_STATIC_EXTENSIONS = new Set(['.md']);
+const BLOCKED_STATIC_FILES = new Set(['server.js']);
+const BLOCKED_STATIC_DIRS = new Set(['intelligence', 'projects', 'lib', 'tests', 'deploy', 'data', 'node_modules']);
+// documentação, arquivos JSON (package.json, cópias de dados) e do banco nunca são servidos
+const BLOCKED_STATIC_EXTENSIONS = new Set(['.md', '.json', '.db', '.db-wal', '.db-shm', '.sqlite']);
 
-const MAX_PROJECTS_BODY_BYTES = 5 * 1024 * 1024;
 const MAX_AUTH_BODY_BYTES = 4 * 1024;
 
-const auth = createAuth();
+// Banco único do sistema: abre, aplica migrations pendentes e garante um usuário
+const db = getDatabase();
+ensureUsers(db);
+const auth = createAuth({ db });
+const handleProjectsRequest = projects.createProjectsHandler({ db });
 
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
@@ -60,30 +66,6 @@ function readBody(req, maxBytes) {
     req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
-}
-
-/**
- * Validates the full projects list sent by the Portal de Projetos.
- * @returns {string|null} Error message, or null when valid.
- */
-function validateProjects(list) {
-  if (!Array.isArray(list)) return 'O conteúdo deve ser uma lista de projetos';
-  if (list.length > 1000) return 'Quantidade de projetos acima do limite';
-  for (const [i, project] of list.entries()) {
-    if (!project || typeof project !== 'object' || Array.isArray(project)) return `Projeto ${i + 1} inválido`;
-    if (typeof project.name !== 'string' || !project.name.trim() || project.name.length > 300) return `Projeto ${i + 1} sem nome válido`;
-    if (project.activities !== undefined && !Array.isArray(project.activities)) return `Projeto ${i + 1} com atividades inválidas`;
-  }
-  return null;
-}
-
-/**
- * Writes the file atomically (temp file + rename) so a crash never leaves it half written.
- */
-function writeFileAtomic(file, content) {
-  const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, content, 'utf8');
-  fs.renameSync(tmp, file);
 }
 
 /**
@@ -127,11 +109,6 @@ function isBlockedStaticPath(filePath) {
   return BLOCKED_STATIC_FILES.has(segments[segments.length - 1]);
 }
 
-// Ensure db.json exists on disk
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2));
-}
-
 const server = http.createServer(async (req, res) => {
   Object.entries(SECURITY_HEADERS).forEach(([name, value]) => res.setHeader(name, value));
 
@@ -171,29 +148,9 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      // API Route - Get Projects
-      if (pathname === '/api/projects' && req.method === 'GET') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(fs.readFileSync(DB_FILE, 'utf8'));
-        return;
-      }
-
-      // API Route - Save Projects (lista completa, validada antes de gravar)
-      if (pathname === '/api/projects' && req.method === 'POST') {
-        let list;
-        try {
-          list = JSON.parse(await readBody(req, MAX_PROJECTS_BODY_BYTES));
-        } catch (err) {
-          sendJson(res, err.status || 400, { error: err.status ? err.message : 'JSON inválido' });
-          return;
-        }
-        const error = validateProjects(list);
-        if (error) {
-          sendJson(res, 400, { error });
-          return;
-        }
-        writeFileAtomic(DB_FILE, JSON.stringify(list));
-        sendJson(res, 200, { success: true });
+      // Portal de Projetos (um projeto por vez)
+      if (pathname === projects.PREFIX || pathname.startsWith(`${projects.PREFIX}/`)) {
+        await handleProjectsRequest(req, res);
         return;
       }
 
@@ -273,6 +230,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 let scheduler = null;
+let backups = null;
 
 server.listen(PORT, HOST, () => {
   console.log(`Servidor rodando em http://localhost:${server.address().port}${HOST ? ` (escutando em ${HOST})` : ''}`);
@@ -290,6 +248,11 @@ server.listen(PORT, HOST, () => {
   if (intelligenceScheduler.isSchedulerEnabled()) {
     scheduler = intelligenceScheduler.startScheduler();
   }
+
+  // Uma cópia do banco por dia (desligável com BACKUP_SCHEDULER=off)
+  if (process.env.BACKUP_SCHEDULER !== 'off') {
+    backups = startBackupSchedule(db);
+  }
 });
 
 /**
@@ -299,6 +262,7 @@ server.listen(PORT, HOST, () => {
 function shutdown(signal) {
   console.log(`[server] ${signal} recebido: encerrando...`);
   if (scheduler) scheduler.stop();
+  if (backups) backups.stop();
   server.close();
   const { isRunning } = require('./intelligence/monitor');
   const startedAt = Date.now();
@@ -306,6 +270,7 @@ function shutdown(signal) {
     // até 25 s para a coleta em andamento terminar (o systemd espera 30 s)
     if (!isRunning() || Date.now() - startedAt > 25000) {
       clearInterval(waitForRun);
+      db.close();
       process.exit(0);
     }
   }, 250);

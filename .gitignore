@@ -2,9 +2,14 @@ node_modules/
 .DS_Store
 .env
 
-# Dados reais: ficam só na máquina/VPS (o servidor cria db.json vazio se não existir)
+# Dados reais: ficam só na máquina/VPS
+data/
+*.db
+*.db-wal
+*.db-shm
 db.json
 intelligence-db.json
+*.imported.json
 *.json.*.tmp
 backups/
 

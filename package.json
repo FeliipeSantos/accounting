@@ -9,13 +9,14 @@
     "test": "node --test \"tests/**/*.test.js\"",
     "intel:run": "node --env-file-if-exists=.env intelligence/cli.js run",
     "intel:reclassify": "node --env-file-if-exists=.env intelligence/cli.js reclassify",
-    "auth:hash": "node lib/hash-password.js",
-    "intel:check": "node --env-file-if-exists=.env intelligence/cli.js check"
+    "intel:check": "node --env-file-if-exists=.env intelligence/cli.js check",
+    "user": "node --env-file-if-exists=.env lib/user-cli.js",
+    "db:backup": "node --env-file-if-exists=.env lib/backup.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": ">=22.9"
+    "node": ">=22.13"
   }
 }

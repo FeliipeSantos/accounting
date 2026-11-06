@@ -2,7 +2,8 @@
 // be connected). The decision is derived from the run history, so it survives
 // restarts: if the server was off at the configured time, it catches up on start.
 const monitor = require('./monitor');
-const { createStore } = require('./store');
+const repo = require('./repository');
+const { getDatabase } = require('../lib/db');
 
 const CHECK_INTERVAL_MS = 60 * 1000;
 // Execução agendada que falhou por completo (ex.: sem internet) é repetida algumas vezes no dia
@@ -65,10 +66,10 @@ function isSchedulerEnabled() {
 
 /**
  * Starts the periodic check. Returns a handle to stop it.
- * @param {{ store?: object, runMonitoring?: Function, now?: () => Date, intervalMs?: number, log?: Function }} [options]
+ * @param {{ db?: import('node:sqlite').DatabaseSync, runMonitoring?: Function, now?: () => Date, intervalMs?: number, log?: Function }} [options]
  */
 function startScheduler(options = {}) {
-  const store = options.store || createStore();
+  const db = options.db || getDatabase();
   const run = options.runMonitoring || monitor.runMonitoring;
   const now = options.now || (() => new Date());
   const log = options.log || ((msg) => console.log(`[intelligence] ${msg}`));
@@ -78,9 +79,9 @@ function startScheduler(options = {}) {
     if (checking) return;
     checking = true;
     try {
-      if (!isDue(store.read(), now())) return;
+      if (!isDue(repo.scheduleData(db, now()), now())) return;
       log('execução agendada iniciada');
-      await run({ trigger: 'scheduled', store });
+      await run({ trigger: 'scheduled', db });
     } catch (err) {
       // ocupado (coleta manual em andamento): tenta de novo na próxima verificação
       if (err instanceof monitor.MonitorBusyError) log('execução agendada adiada: outra coleta em andamento');
@@ -93,8 +94,8 @@ function startScheduler(options = {}) {
   const timer = setInterval(check, options.intervalMs || CHECK_INTERVAL_MS);
   // primeira verificação logo após iniciar (recupera execução perdida com o servidor desligado)
   const first = setTimeout(check, 0);
-  const settings = store.read().settings;
-  log(`agendamento ativo: diariamente às ${settings.runTime}; próxima execução ${new Date(computeNextRunAt(store.read(), now())).toLocaleString('pt-BR')}`);
+  const data = repo.scheduleData(db, now());
+  log(`agendamento ativo: diariamente às ${data.settings.runTime}; próxima execução ${new Date(computeNextRunAt(data, now())).toLocaleString('pt-BR')}`);
 
   return {
     check,

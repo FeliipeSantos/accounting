@@ -192,33 +192,54 @@ function loadProjects(callback) {
     });
 }
 
-function saveToStorage() {
+/**
+ * Sends one request to the projects API and reports failures to the user.
+ * @returns {Promise<boolean>} true when the server accepted it.
+ */
+function sendProjectRequest(url, options) {
   if (projectsLoadFailed) {
-    // a lista não foi carregada: salvar agora apagaria os projetos do servidor
+    // a lista não foi carregada: nada é enviado para não gravar dados incompletos
     alert('Os projetos não foram carregados do servidor, então nada foi salvo. Recarregue a página e tente novamente.');
-    return;
+    return Promise.resolve(false);
   }
-  apiFetch('/api/projects', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(projectsList)
-  })
-  .then(res => res.json().then(data => ({ ok: res.ok, data })))
-  .then(({ ok, data }) => {
-    if (ok) {
-      console.log('Dados salvos no servidor local.', data);
-    } else {
-      // o servidor recusou (ex.: dados inválidos): nada foi gravado
-      console.error('O servidor recusou os dados:', data.error);
-      alert(`Não foi possível salvar: ${data.error}`);
-    }
-  })
-  .catch(err => {
-    if (err.sessionExpired) return;
-    console.error('Erro ao salvar no servidor local:', err);
+  return apiFetch(url, { ...options, headers: { 'Content-Type': 'application/json' } })
+    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) {
+        // o servidor recusou (ex.: dados inválidos): nada foi gravado
+        console.error('O servidor recusou a operação:', data.error);
+        alert(`Não foi possível salvar: ${data.error}`);
+      }
+      return ok;
+    })
+    .catch(err => {
+      if (!err.sessionExpired) {
+        console.error('Erro ao salvar no servidor:', err);
+        alert('Não foi possível salvar: servidor indisponível. Tente novamente.');
+      }
+      return false;
+    });
+}
+
+/**
+ * Saves ONE project on the server (create or update).
+ * @returns {Promise<boolean>}
+ */
+function saveProject(project) {
+  return sendProjectRequest(`/api/projects/${encodeURIComponent(project.id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(project)
   });
+}
+
+/**
+ * Saves the project currently open in the editor.
+ * @returns {Promise<boolean>}
+ */
+function saveToStorage() {
+  const project = projectsList.find(p => p.id === activeProjectId);
+  if (!project) return Promise.resolve(true);
+  return saveProject(project);
 }
 
 function selectProject(id) {
@@ -1489,7 +1510,7 @@ function createProject() {
   };
   
   projectsList.push(newProject);
-  saveToStorage();
+  saveProject(newProject);
   renderProjectsGrid();
   selectProject(id);
 }
@@ -1499,9 +1520,13 @@ function deleteProject(id) {
   if (!project) return;
   
   if (confirm(`Deseja realmente excluir permanentemente o projeto "${project.name}"? Esta ação não pode ser desfeita.`)) {
-    projectsList = projectsList.filter(p => p.id !== id);
-    saveToStorage();
-    renderProjectsGrid();
+    // remove da tela só depois que o servidor confirmar a exclusão
+    sendProjectRequest(`/api/projects/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(ok => {
+      if (!ok) return;
+      projectsList = projectsList.filter(p => p.id !== id);
+      if (activeProjectId === id) activeProjectId = null;
+      renderProjectsGrid();
+    });
   }
 }
 
@@ -1559,11 +1584,13 @@ function handleLogout() {
 }
 
 function showProjectSelectorScreen() {
-  saveToStorage(); // Ensure current editing states are saved
-  loadProjects(() => {
-    renderProjectsGrid();
-    showScreen('project-selector-screen');
-  });
+  // salva o projeto aberto e só então recarrega a lista (evita mostrar a versão anterior)
+  saveToStorage().then(() =>
+    loadProjects(() => {
+      renderProjectsGrid();
+      showScreen('project-selector-screen');
+    })
+  );
 }
 
 // Startup Initialization
