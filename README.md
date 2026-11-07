@@ -14,20 +14,25 @@ Sistema interno com dois módulos:
 
 ## Rodar na máquina de desenvolvimento
 
-1. **Backend** (porta 8080): prepare o ambiente conforme `backend/README.md` e rode:
-   ```bash
-   cd backend
-   .venv\Scripts\python run.py
-   ```
-   Sem usuários no banco, em desenvolvimento ele cria `admin` / `admin`.
+Na raiz do projeto:
 
-2. **Tela**, com recarga automática ao editar (porta 5173, repassa `/api` ao backend):
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-   Acesse http://localhost:5173.
+```bash
+npm run dev
+```
+
+O comando sobe o backend (porta 8080) e a tela com recarga automática ao editar (porta 5173), juntos. Acesse http://localhost:5173. Ctrl+C encerra os dois. Sem usuários no banco, em desenvolvimento o backend cria `admin` / `admin`.
+
+Na primeira vez, prepare as duas partes (o comando avisa se faltar algo):
+
+```bash
+cd backend
+py -3.12 -m venv .venv
+.venv\Scripts\pip install -r requirements-dev.txt
+cd ..\frontend
+npm install
+```
+
+Para rodar cada parte em separado: `.venv\Scripts\python run.py` em `backend/` e `npm run dev` em `frontend/`.
 
 Para ver a tela como em produção: rode `npm run build` em `frontend/` e acesse http://localhost:8080. O `run.py` entrega o build.
 
