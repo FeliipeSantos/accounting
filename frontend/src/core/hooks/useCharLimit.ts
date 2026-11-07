@@ -13,8 +13,8 @@ export const CHAR_LIMITS = {
   subActivityName: 300,
   listItem: 500,
   kanbanCard: 300,
-  projectSearch: 120,
   publicationSearch: 120,
+  globalSearch: 120,
 } as const;
 
 export type CharLimitField = keyof typeof CHAR_LIMITS;

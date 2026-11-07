@@ -4,7 +4,20 @@ import { useState } from 'react';
 
 import { addActivity, moveActivity, removeActivity, renameActivity, setActivityStatus, statusTone } from '@/modules/projects/model';
 import { EditableText } from '@/modules/projects/report/EditableText';
-import { ActivityRow, DragCell, IdCell, MiddleCard, MiddleTitle, StatusBadge, StatusCell, Subtitle, SummaryRow, Table } from '@/modules/projects/report/styles';
+import {
+  ActivityRow,
+  AddRowCell,
+  DragCell,
+  IdCell,
+  MiddleCard,
+  MiddleTitle,
+  StatusBadge,
+  StatusCell,
+  StatusSelectBox,
+  Subtitle,
+  SummaryRow,
+  Table,
+} from '@/modules/projects/report/styles';
 import { ACTIVITY_STATUSES, type ActivityStatus, type Project } from '@/modules/projects/types';
 
 interface ActivitiesTableProps {
@@ -15,10 +28,7 @@ interface ActivitiesTableProps {
   onChange: (project: Project) => void;
 }
 
-const STATUS_OPTIONS = ACTIVITY_STATUSES.map((status) => ({
-  value: status,
-  label: <StatusBadge $tone={statusTone(status)}>{status}</StatusBadge>,
-}));
+const STATUS_OPTIONS = ACTIVITY_STATUSES.map((status) => ({ value: status, label: status }));
 
 /** "Avanço por atividade": status of each phase; in edit mode it also renames, reorders (drag) and removes. */
 export function ActivitiesTable({ project, editing, selectedId, onSelect, onChange }: ActivitiesTableProps) {
@@ -119,15 +129,18 @@ export function ActivitiesTable({ project, editing, selectedId, onSelect, onChan
               </td>
               <StatusCell onClick={(e) => editing && e.stopPropagation()}>
                 {editing ? (
-                  <Select<ActivityStatus>
-                    size="small"
-                    variant="borderless"
-                    popupMatchSelectWidth={false}
-                    value={activity.status as ActivityStatus}
-                    options={STATUS_OPTIONS}
-                    onChange={(status) => onChange(setActivityStatus(project, activity.id, status))}
-                    aria-label={`Status da atividade ${activity.id}`}
-                  />
+                  <StatusSelectBox $tone={statusTone(activity.status)}>
+                    <Select<ActivityStatus>
+                      size="small"
+                      variant="filled"
+                      popupMatchSelectWidth={false}
+                      value={activity.status as ActivityStatus}
+                      options={STATUS_OPTIONS}
+                      optionRender={(option) => <StatusBadge $tone={statusTone(String(option.value))}>{option.label}</StatusBadge>}
+                      onChange={(status) => onChange(setActivityStatus(project, activity.id, status))}
+                      aria-label={`Status da atividade ${activity.id}`}
+                    />
+                  </StatusSelectBox>
                 ) : (
                   <StatusBadge $tone={statusTone(activity.status)}>{activity.status}</StatusBadge>
                 )}
@@ -154,15 +167,19 @@ export function ActivitiesTable({ project, editing, selectedId, onSelect, onChan
             <IdCell />
             <td>AVANÇO DO PROJETO</td>
             <StatusCell>
-              <StatusBadge $tone="done">PROJETO</StatusBadge>
+              <StatusBadge $tone="done" $outlined>
+                PROJETO
+              </StatusBadge>
             </StatusCell>
             {editing && <td />}
           </SummaryRow>
           {editing && (
             <tr>
-              <td colSpan={columns}>
+              <AddRowCell colSpan={columns}>
                 <Button
-                  type="dashed"
+                  color="primary"
+                  variant="dashed"
+                  block
                   icon={<PlusOutlined />}
                   onClick={() => {
                     const added = addActivity(project);
@@ -172,7 +189,7 @@ export function ActivitiesTable({ project, editing, selectedId, onSelect, onChan
                 >
                   Adicionar Atividade
                 </Button>
-              </td>
+              </AddRowCell>
             </tr>
           )}
         </tbody>

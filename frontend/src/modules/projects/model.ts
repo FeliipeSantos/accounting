@@ -2,11 +2,19 @@
  * Rules of the Portal de Projetos, as pure functions (same behavior as the previous screen).
  * Every function returns a new project; the given one is never changed.
  */
-import dayjs from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 
 import type { Activity, ActivityListKey, ActivityStatus, KanbanColumn, Project, ProjectTextField } from '@/modules/projects/types';
 
 export const DATE_FORMAT = 'DD/MM/YYYY';
+
+/** Parses a report date, accepting spaces around the separators (e.g. "04 / 05 / 2026"). */
+export function parseReportDate(value?: string): Dayjs | null {
+  if (!value) return null;
+  const parsed = dayjs(value.replace(/\s+/g, ''), DATE_FORMAT, true);
+  return parsed.isValid() ? parsed : null;
+}
+
 const NEW_PROJECT_DAYS = 60;
 
 function update<T>(value: T, change: (draft: T) => void): T {

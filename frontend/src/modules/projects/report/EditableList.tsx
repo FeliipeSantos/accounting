@@ -1,10 +1,10 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Flex } from 'antd';
+import { Button } from 'antd';
 import { useState } from 'react';
 
 import type { CharLimitField } from '@/core/hooks/useCharLimit';
 import { EditableText } from '@/modules/projects/report/EditableText';
-import { Bullet, BulletList, ScreenOnly } from '@/modules/projects/report/styles';
+import { Bullet, BulletList, RemoveItemRow, ScreenOnly } from '@/modules/projects/report/styles';
 
 interface EditableListProps {
   items: string[];
@@ -38,7 +38,7 @@ export function EditableList({ items, editing, field, emptyText, itemLabel, onAd
       {items.map((item, index) => (
         <Bullet key={`${index}-${item}`} $plain={editing}>
           {editing ? (
-            <Flex gap={4} align="center">
+            <RemoveItemRow>
               <EditableText
                 value={item}
                 editing
@@ -51,7 +51,7 @@ export function EditableList({ items, editing, field, emptyText, itemLabel, onAd
                 }}
               />
               <Button type="text" size="small" icon={<DeleteOutlined />} aria-label={`Excluir ${itemLabel.toLowerCase()} ${index + 1}`} onClick={() => onRemove(index)} />
-            </Flex>
+            </RemoveItemRow>
           ) : (
             item
           )}
@@ -61,7 +61,8 @@ export function EditableList({ items, editing, field, emptyText, itemLabel, onAd
         <Bullet $plain>
           <ScreenOnly>
             <Button
-              type="dashed"
+              color="primary"
+              variant="dashed"
               size="small"
               block
               icon={<PlusOutlined />}

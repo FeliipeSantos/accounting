@@ -18,7 +18,7 @@ const DetailPage = styled.div`
   gap: 20px;
 `;
 
-const PageHeader = styled.div`
+const PrintPageHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -160,7 +160,7 @@ export const PrintPages = forwardRef<HTMLDivElement, { project: Project }>(funct
     <PrintOnly ref={ref}>
       {detailed.map((activity) => (
         <DetailPage key={activity.id} data-print-page>
-          <PageHeader>
+          <PrintPageHeader>
             <div>
               <h2>{project.name}</h2>
               <p>DETALHAMENTO DA ATIVIDADE</p>
@@ -171,7 +171,7 @@ export const PrintPages = forwardRef<HTMLDivElement, { project: Project }>(funct
                 {activity.status} ({activity.progress}%)
               </WideBadge>
             </HeaderRight>
-          </PageHeader>
+          </PrintPageHeader>
           {activity.subActivities.length > 0 && (
             <section>
               <SectionTitle>Subatividades</SectionTitle>

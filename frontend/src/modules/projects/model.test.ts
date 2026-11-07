@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -7,6 +8,7 @@ import {
   moveActivity,
   newProject,
   normalizeProject,
+  parseReportDate,
   projectProgress,
   removeActivity,
   renameSubActivity,
@@ -16,6 +18,8 @@ import {
   toggleSubActivity,
 } from '@/modules/projects/model';
 import type { Project } from '@/modules/projects/types';
+
+dayjs.extend(customParseFormat);
 
 function sample(): Project {
   const project = newProject('Teste', dayjs('2026-11-06'));
@@ -82,5 +86,17 @@ describe('normalizeProject', () => {
     expect(project.activities[0].id).toBe(3);
     expect(project.activities[0].subActivities).toEqual([]);
     expect(project.activities[0].actionPlans).toEqual([]);
+  });
+});
+
+describe('parseReportDate', () => {
+  it('reads dd/mm/yyyy, also with spaces around the separators', () => {
+    expect(parseReportDate('04/05/2026')?.format('YYYY-MM-DD')).toBe('2026-05-04');
+    expect(parseReportDate('04 / 05 / 2026')?.format('YYYY-MM-DD')).toBe('2026-05-04');
+  });
+
+  it('returns null for empty or invalid text', () => {
+    expect(parseReportDate('')).toBeNull();
+    expect(parseReportDate('maio de 2026')).toBeNull();
   });
 });

@@ -1,54 +1,59 @@
-import { Flex, Typography } from 'antd';
 import type { ReactNode } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
-import { colors } from '@/theme';
+import { PageContainer, PageHeader } from '@/core/ui';
+import { colors, GLOBAL_HEADER_HEIGHT } from '@/theme';
 
-const Container = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+// título da página logo abaixo do cabeçalho global; "sticky" mantém as ações visíveis ao rolar
+const HeaderArea = styled.div<{ $sticky: boolean }>`
+  ${({ $sticky }) =>
+    $sticky &&
+    css`
+      position: sticky;
+      top: ${GLOBAL_HEADER_HEIGHT}px;
+      z-index: 100;
+      background: ${colors.bgApp};
+      margin: -24px -32px 0;
+      padding: 24px 32px 16px;
+      border-bottom: 1px solid ${colors.border};
 
-  @media (max-width: 600px) {
-    padding: 24px 16px;
-  }
-`;
+      @media (max-width: 768px) {
+        margin: -20px -16px 0;
+        padding: 20px 16px 12px;
+      }
+    `}
 
-const Header = styled(Flex)`
-  padding-bottom: 24px;
-  border-bottom: 1px solid ${colors.border};
-  margin-bottom: 30px;
-`;
-
-const Title = styled(Typography.Title)`
-  &&& {
-    color: ${colors.navy};
-    margin: 0;
+  @media print {
+    display: none;
   }
 `;
 
 interface PageProps {
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
+  title: ReactNode;
+  description?: ReactNode;
+  /** Outlined icon of the module, shown before the title. */
+  icon?: ReactNode;
+  /** Back arrow before the title (pages opened from a list). */
+  onBack?: () => void;
+  backLabel?: string;
+  /** Page-specific actions on the right of the title. */
   actions?: ReactNode;
+  /** Keeps the title and actions visible while the page scrolls. */
+  stickyHeader?: boolean;
   children: ReactNode;
 }
 
-/** Module page: title with subtitle, optional actions on the right, and the content. */
-export function Page({ icon, title, subtitle, actions, children }: PageProps) {
+/**
+ * Module page: starts below the global header with the page title area (the only part
+ * that varies between modules) and the content.
+ */
+export function Page({ title, description, icon, onBack, backLabel, actions, stickyHeader = false, children }: PageProps) {
   return (
-    <Container>
-      <Header justify="space-between" align="center" gap={16} wrap>
-        <div>
-          <Title level={2}>
-            {icon} {title}
-          </Title>
-          <Typography.Text type="secondary">{subtitle}</Typography.Text>
-        </div>
-        {actions}
-      </Header>
+    <PageContainer>
+      <HeaderArea $sticky={stickyHeader}>
+        <PageHeader title={title} description={description} icon={icon} onBack={onBack} backLabel={backLabel} actions={actions} />
+      </HeaderArea>
       {children}
-    </Container>
+    </PageContainer>
   );
 }

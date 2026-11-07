@@ -1,12 +1,13 @@
-import { LogoutOutlined, ToolOutlined } from '@ant-design/icons';
-import { Flex, Layout, Menu } from 'antd';
-import { useState } from 'react';
+import { Layout, Menu } from 'antd';
+import { useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { useAuth } from '@/core/auth/authContext';
+import { GlobalHeader } from '@/core/layout/GlobalHeader';
+import { LayoutContext } from '@/core/layout/layoutContext';
+import { APP_VERSION, BrandMark, BRAND_NAME } from '@/core/ui';
 import { MODULES } from '@/modules';
-import { colors } from '@/theme';
+import { palette } from '@/theme';
 
 const COLLAPSED_KEY = 'side_nav_collapsed';
 
@@ -38,35 +39,76 @@ const Sider = styled(Layout.Sider)`
     top: 0;
     height: 100vh;
     overflow: auto;
+    background: linear-gradient(180deg, ${palette.navy900} 0%, ${palette.navy950} 100%);
+  }
+
+  .ant-menu-dark,
+  .ant-menu-dark .ant-menu-sub {
+    background: transparent;
+  }
+
+  .ant-menu-dark .ant-menu-item {
+    font-weight: 500;
+    margin-inline: 12px;
+    width: calc(100% - 24px);
+  }
+
+  .ant-menu-dark .ant-menu-item-selected {
+    font-weight: 600;
+    box-shadow: 0 6px 14px -6px rgba(30, 107, 230, 0.7);
+  }
+
+  .ant-menu-title-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 `;
 
+const SiderContent = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 0 16px;
+`;
+
 const Brand = styled.div<{ $collapsed: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
+  padding: ${({ $collapsed }) => ($collapsed ? '0 0 20px' : '0 24px 24px')};
   color: #fff;
+  font-size: 16px;
   font-weight: 700;
-  font-size: 1rem;
+  letter-spacing: -0.01em;
   white-space: nowrap;
-  padding: ${({ $collapsed }) => ($collapsed ? '20px 0' : '20px 24px')};
-  text-align: ${({ $collapsed }) => ($collapsed ? 'center' : 'left')};
 `;
 
 const SectionLabel = styled.span`
   display: block;
-  padding: 0 24px 4px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-`;
-
-// ocupa a altura do menu, menos o botão de recolher (48px) do Ant Design
-const SiderContent = styled(Flex)`
-  min-height: calc(100vh - 48px);
+  padding: 0 24px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c9d5e3;
 `;
 
 const Footer = styled.div`
-  border-top: 1px solid ${colors.navyDark};
+  margin-top: auto;
+  padding-top: 12px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(201, 213, 227, 0.7);
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 1px;
+    margin: 0 24px 12px;
+    background: rgba(255, 255, 255, 0.1);
+  }
 `;
 
 // min-width 0: tabelas e o relatório largos rolam dentro da área, sem empurrar a página
@@ -74,12 +116,11 @@ const Content = styled(Layout.Content)`
   min-width: 0;
 `;
 
-// em telas estreitas o menu fica só com os ícones
-const NARROW_WIDTH = 56;
+// recolhido (ou em telas estreitas) o menu fica só com os ícones
+const COLLAPSED_WIDTH = 72;
 
 /** Authenticated shell: side menu with the system modules and the active module. */
 export function AppLayout() {
-  const { logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [preferCollapsed, setPreferCollapsed] = useState(readCollapsed);
@@ -88,52 +129,45 @@ export function AppLayout() {
 
   const activeModule = MODULES.find((m) => location.pathname.startsWith(m.path))?.key;
 
-  function toggle(value: boolean) {
-    setPreferCollapsed(value);
-    saveCollapsed(value);
-  }
+  const layout = useMemo(
+    () => ({
+      collapsed,
+      narrow,
+      toggleMenu: () =>
+        setPreferCollapsed((value) => {
+          saveCollapsed(!value);
+          return !value;
+        }),
+    }),
+    [collapsed, narrow],
+  );
 
   return (
-    <Shell hasSider>
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value, type) => type === 'clickTrigger' && toggle(value)}
-        breakpoint="md"
-        onBreakpoint={setNarrow}
-        collapsedWidth={narrow ? NARROW_WIDTH : 80}
-        trigger={narrow ? null : undefined}
-        width={240}
-        data-print-hide
-      >
-        <SiderContent vertical justify="space-between">
-          <div>
+    <LayoutContext.Provider value={layout}>
+      <Shell hasSider>
+        <Sider collapsible collapsed={collapsed} breakpoint="md" onBreakpoint={setNarrow} collapsedWidth={COLLAPSED_WIDTH} trigger={null} width={240} data-print-hide>
+          <SiderContent>
             <Brand $collapsed={collapsed}>
-              <ToolOutlined /> {!collapsed && 'Ferramentas'}
+              <BrandMark />
+              {!collapsed && BRAND_NAME}
             </Brand>
-            {!collapsed && <SectionLabel>Módulos</SectionLabel>}
+            {!collapsed && <SectionLabel>Ferramentas</SectionLabel>}
             <Menu
               theme="dark"
               mode="inline"
               selectedKeys={activeModule ? [activeModule] : []}
-              items={MODULES.map((m) => ({ key: m.key, icon: m.icon, label: m.label, title: m.label }))}
+              items={MODULES.map(({ key, icon, label }) => ({ key, icon, label, title: label }))}
               onClick={({ key }) => navigate(MODULES.find((m) => m.key === key)?.path ?? '/')}
             />
-          </div>
-          <Footer>
-            <Menu
-              theme="dark"
-              mode="inline"
-              selectable={false}
-              items={[{ key: 'logout', icon: <LogoutOutlined />, label: 'Sair', title: 'Sair da conta' }]}
-              onClick={() => void logout()}
-            />
-          </Footer>
-        </SiderContent>
-      </Sider>
-      <Content>
-        <Outlet />
-      </Content>
-    </Shell>
+            {/* sair da conta fica no menu do perfil, no cabeçalho global */}
+            <Footer title={`Versão ${APP_VERSION}`}>{collapsed ? `v${APP_VERSION}` : `Version ${APP_VERSION}`}</Footer>
+          </SiderContent>
+        </Sider>
+        <Content>
+          <GlobalHeader />
+          <Outlet />
+        </Content>
+      </Shell>
+    </LayoutContext.Provider>
   );
 }

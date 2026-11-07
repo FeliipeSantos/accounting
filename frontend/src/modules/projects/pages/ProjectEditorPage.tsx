@@ -1,10 +1,12 @@
-import { CloseOutlined, EditOutlined, FolderOpenOutlined, PrinterOutlined, SaveOutlined } from '@ant-design/icons';
-import { App, Button, Flex, Result, Skeleton, Typography } from 'antd';
+import { EditOutlined, FolderOpenOutlined, PrinterOutlined, SaveOutlined } from '@ant-design/icons';
+import { App, Button, Flex, Result } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import { flushSync } from 'react-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { errorMessage, SessionExpiredError } from '@/core/api/client';
+import { Page } from '@/core/layout/Page';
+import { LoadingState, StatusBadge } from '@/core/ui';
 import { getProject, saveProject } from '@/modules/projects/api';
 import { toggleSubActivity, withProjectProgress } from '@/modules/projects/model';
 import { ActivitiesTable } from '@/modules/projects/report/ActivitiesTable';
@@ -15,36 +17,23 @@ import { InfoCards, ReportHeader } from '@/modules/projects/report/ReportHeader'
 import { MiddleRow, Paper, Viewport } from '@/modules/projects/report/styles';
 import { SubActivitiesCard } from '@/modules/projects/report/SubActivitiesCard';
 import type { Project } from '@/modules/projects/types';
-import { colors, shadows } from '@/theme';
-
-const Toolbar = styled(Flex)`
-  background-color: ${colors.navy};
-  padding: 12px 24px;
-  box-shadow: ${shadows.sm};
-  position: sticky;
-  top: 0;
-  z-index: 100;
-`;
-
-const ToolbarTitle = styled(Typography.Text)`
-  &&& {
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 700;
-  }
-`;
 
 const serialize = (project: Project | null) => JSON.stringify(project);
 
 export function ProjectEditorPage() {
   const { projectId = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // "Editar" no card da lista abre o relatório já em modo de edição
+  const startEditing = (location.state as { edit?: boolean } | null)?.edit === true;
   const { message } = App.useApp();
   const [project, setProject] = useState<Project | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [editing, setEditing] = useState(false);
   const [backup, setBackup] = useState<Project | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  // durante a impressão o relatório é desenhado como texto, sem os controles de edição
+  const [printing, setPrinting] = useState(false);
   const paperRef = useRef<HTMLDivElement>(null);
   const printRef = useRef<HTMLDivElement>(null);
   // última versão gravada no servidor e versão atual, para salvar ao sair da tela
@@ -65,13 +54,17 @@ export function ProjectEditorPage() {
         savedRef.current = serialize(found);
         setProject(loaded);
         setSelectedId(loaded.activities[0]?.id ?? null);
+        if (startEditing) {
+          setBackup(structuredClone(loaded));
+          setEditing(true);
+        }
         setStatus('ready');
       })
       .catch((error) => active && !(error instanceof SessionExpiredError) && setStatus('error'));
     return () => {
       active = false;
     };
-  }, [projectId]);
+  }, [projectId, startEditing]);
 
   const persist = useCallback(
     async (next: Project | null) => {
@@ -123,60 +116,91 @@ export function ProjectEditorPage() {
   }
 
   function print() {
+    flushSync(() => setPrinting(true));
     const pages = [paperRef.current, ...Array.from(printRef.current?.querySelectorAll<HTMLElement>('[data-print-page]') ?? [])].filter(
       (page): page is HTMLElement => page !== null,
     );
     const reset = fitPagesForPrint(pages, printRef.current);
     window.print();
     reset();
+    setPrinting(false);
   }
 
-  if (status === 'loading') return <Skeleton active />;
+  const toList = () => navigate('/projetos');
+
+  if (status === 'loading') {
+    return (
+      <Page icon={<FolderOpenOutlined />} title="Portal de Projetos" description="Carregando o status report…" onBack={toList} backLabel="Voltar aos projetos">
+        <LoadingState rows={8} />
+      </Page>
+    );
+  }
   if (status === 'missing' || status === 'error' || !project) {
     return (
-      <Result
-        status={status === 'missing' ? '404' : 'error'}
-        title={status === 'missing' ? 'Projeto não encontrado' : 'Não foi possível carregar o projeto'}
-        extra={<Button onClick={() => navigate('/projetos')}>Voltar aos projetos</Button>}
-      />
+      <Page icon={<FolderOpenOutlined />} title="Portal de Projetos" onBack={toList} backLabel="Voltar aos projetos">
+        <Result
+          status={status === 'missing' ? '404' : 'error'}
+          title={status === 'missing' ? 'Projeto não encontrado' : 'Não foi possível carregar o projeto'}
+          extra={<Button onClick={toList}>Voltar aos projetos</Button>}
+        />
+      </Page>
     );
   }
 
   const activity = project.activities.find((a) => a.id === selectedId) ?? null;
+  const editable = editing && !printing;
 
   return (
-    <>
-      <Toolbar justify="space-between" align="center" wrap gap={12} data-print-hide>
-        <ToolbarTitle>Gerenciador de Projetos</ToolbarTitle>
-        <Flex gap={10} wrap>
-          <Button ghost icon={<FolderOpenOutlined />} onClick={() => void backToList()}>
-            Projetos
-          </Button>
-          <Button type={editing ? 'primary' : 'default'} ghost={!editing} icon={editing ? <SaveOutlined /> : <EditOutlined />} onClick={toggleEditing}>
-            {editing ? 'Salvar' : 'Editar'}
-          </Button>
+    <Page
+      stickyHeader
+      title={project.name}
+      description={
+        <Flex align="center" gap={8} wrap>
+          <span>Portal de Projetos · Status report</span>
           {editing && (
-            <Button ghost danger icon={<CloseOutlined />} onClick={cancelEditing} title="Cancelar alterações feitas nesta sessão">
-              Cancelar
+            <StatusBadge tone="warning" dot={false}>
+              Editando
+            </StatusBadge>
+          )}
+        </Flex>
+      }
+      onBack={() => void backToList()}
+      backLabel="Voltar aos projetos"
+      actions={
+        <>
+          {editing ? (
+            <>
+              <Button type="text" onClick={cancelEditing} title="Cancelar alterações feitas nesta sessão">
+                Cancelar
+              </Button>
+              <Button type="primary" icon={<SaveOutlined />} onClick={toggleEditing}>
+                Salvar
+              </Button>
+            </>
+          ) : (
+            <Button icon={<EditOutlined />} onClick={toggleEditing}>
+              Editar
             </Button>
           )}
-          <Button ghost icon={<PrinterOutlined />} onClick={print} aria-label="Exportar PDF / Imprimir" title="Exportar PDF / Imprimir" />
-        </Flex>
-      </Toolbar>
-
+          <Button icon={<PrinterOutlined />} onClick={print} title="Exportar PDF / Imprimir">
+            Exportar PDF
+          </Button>
+        </>
+      }
+    >
       <Viewport>
         <Paper ref={paperRef}>
-          <ReportHeader project={project} editing={editing} onChange={setProject} />
-          <InfoCards project={project} editing={editing} onChange={setProject} />
+          <ReportHeader project={project} editing={editable} onChange={setProject} />
+          <InfoCards project={project} editing={editable} onChange={setProject} />
           <MiddleRow>
-            <ActivitiesTable project={project} editing={editing} selectedId={selectedId} onSelect={setSelectedId} onChange={setProject} />
-            <SubActivitiesCard project={project} activity={activity} editing={editing} onChange={setProject} onToggle={toggleSub} />
+            <ActivitiesTable project={project} editing={editable} selectedId={selectedId} onSelect={setSelectedId} onChange={setProject} />
+            <SubActivitiesCard project={project} activity={activity} editing={editable} onChange={setProject} onToggle={toggleSub} />
           </MiddleRow>
-          <AttentionCards project={project} activity={activity} editing={editing} onChange={setProject} />
-          <KanbanBoard project={project} editing={editing} onChange={setProject} />
+          <AttentionCards project={project} activity={activity} editing={editable} onChange={setProject} />
+          <KanbanBoard project={project} editing={editable} onChange={setProject} />
         </Paper>
       </Viewport>
       <PrintPages ref={printRef} project={project} />
-    </>
+    </Page>
   );
 }

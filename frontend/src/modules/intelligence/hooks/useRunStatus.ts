@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { errorMessage, SessionExpiredError } from '@/core/api/client';
 import { intelligenceApi } from '@/modules/intelligence/api';
 import { describeFinishedRun, formatTime } from '@/modules/intelligence/format';
-import type { Run } from '@/modules/intelligence/types';
+import type { Run, RunState } from '@/modules/intelligence/types';
 
 const POLL_MS = 3000;
 
@@ -19,6 +19,8 @@ export interface RunNotice {
 export function useRunStatus(sourceName: (id: string) => string, onFinished: (run: Run) => void) {
   const [running, setRunning] = useState(false);
   const [notice, setNotice] = useState<RunNotice | null>(null);
+  // última resposta de /status: alimenta a linha "Última coleta" do cabeçalho
+  const [state, setState] = useState<RunState | null>(null);
   const watching = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const finishedRef = useRef(onFinished);
@@ -30,6 +32,7 @@ export function useRunStatus(sourceName: (id: string) => string, onFinished: (ru
     clearTimeout(timer.current);
     try {
       const status = await intelligenceApi.status();
+      setState(status);
       if (status.running) {
         watching.current = true;
         setRunning(true);
@@ -43,7 +46,7 @@ export function useRunStatus(sourceName: (id: string) => string, onFinished: (ru
       setRunning(false);
       if (watching.current && status.lastRun) {
         watching.current = false;
-        // sucesso já aparece no card "Última execução"; o aviso fica só para falhas
+        // sucesso já aparece na linha "Última coleta" do cabeçalho; o aviso fica só para falhas
         setNotice(status.lastRun.status === 'success' ? null : { text: describeFinishedRun(status.lastRun, nameRef.current), tone: 'warning' });
         finishedRef.current(status.lastRun);
       }
@@ -69,5 +72,5 @@ export function useRunStatus(sourceName: (id: string) => string, onFinished: (ru
     void check();
   }, [check]);
 
-  return { running, notice, start };
+  return { running, notice, start, state };
 }

@@ -16,10 +16,11 @@ const printExact = css`
 `;
 
 export const Viewport = styled.section`
-  padding: 24px;
+  padding: 4px 0 8px;
   overflow-x: auto;
   display: flex;
-  justify-content: center;
+  /* safe: quando a folha é mais larga que a tela, alinha à esquerda em vez de cortar o início */
+  justify-content: safe center;
   align-items: flex-start;
 
   @media print {
@@ -214,6 +215,8 @@ export const Table = styled.table`
   font-size: 0.72rem;
   text-align: left;
   border: 1px solid ${colors.border};
+  border-radius: 4px;
+  overflow: hidden;
 
   th {
     background-color: ${colors.blue};
@@ -285,7 +288,7 @@ export const DragCell = styled.td`
   }
 `;
 
-export const StatusBadge = styled.span<{ $tone: 'done' | 'delayed' | 'ongoing' | 'todo' }>`
+export const StatusBadge = styled.span<{ $tone: 'done' | 'delayed' | 'ongoing' | 'todo'; $outlined?: boolean }>`
   display: inline-block;
   width: 100%;
   padding: 2px 8px;
@@ -296,7 +299,44 @@ export const StatusBadge = styled.span<{ $tone: 'done' | 'delayed' | 'ongoing' |
   white-space: nowrap;
   background-color: ${({ $tone }) => colors.status[$tone].bg};
   color: ${({ $tone }) => colors.status[$tone].text};
+  border: ${({ $outlined }) => ($outlined ? '1px solid #fff' : 'none')};
   ${printExact}
+`;
+
+/** Status picker of the edit mode, filled with the color of the chosen status. */
+export const StatusSelectBox = styled.div<{ $tone: 'done' | 'delayed' | 'ongoing' | 'todo' }>`
+  .ant-select {
+    width: 100%;
+  }
+
+  .ant-select-selector {
+    background-color: ${({ $tone }) => colors.status[$tone].bg} !important;
+    border-radius: 4px !important;
+  }
+
+  .ant-select-selection-item,
+  .ant-select-arrow {
+    color: ${({ $tone }) => colors.status[$tone].text};
+    font-weight: 700;
+    font-size: 0.68rem;
+    text-align: center;
+  }
+`;
+
+/** "+ Adicionar Atividade": dashed blue button that lifts on hover. */
+export const AddRowCell = styled.td`
+  border-bottom: none !important;
+
+  .ant-btn {
+    box-shadow: ${shadows.sm};
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .ant-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: ${shadows.md};
+  }
 `;
 
 export const AttentionRow = styled.div`
@@ -427,9 +467,18 @@ export const SubActivityItem = styled.li<{ $completed: boolean }>`
   font-weight: 500;
   color: ${({ $completed }) => ($completed ? colors.textMuted : colors.textDark)};
 
+  .ant-btn {
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+  }
+
   &:hover {
     background: ${colors.bgMuted};
     border-color: ${colors.borderStrong};
+
+    .ant-btn {
+      opacity: 1;
+    }
   }
 `;
 
@@ -447,17 +496,48 @@ export const EmptyBox = styled.div`
   padding: 20px;
 `;
 
+/**
+ * Column of the subactivities card: takes the height of the activities table next to it
+ * (the card fills it and its list scrolls inside).
+ */
+export const SubActivitiesColumn = styled.div`
+  position: relative;
+  min-height: 260px;
+
+  > * {
+    position: absolute;
+    inset: 0;
+  }
+`;
+
 export const ScrollList = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 340px;
 
   @media print {
     max-height: none;
     overflow: visible;
+  }
+`;
+
+/** Remove button of a list item: faded until the row is hovered. */
+export const RemoveItemRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .ant-btn {
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover .ant-btn,
+  .ant-btn:focus-visible {
+    opacity: 1;
   }
 `;
 

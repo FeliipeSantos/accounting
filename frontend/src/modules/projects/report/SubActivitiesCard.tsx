@@ -5,7 +5,17 @@ import { useState } from 'react';
 import { useCharLimit } from '@/core/hooks/useCharLimit';
 import { addSubActivity, removeSubActivity, renameSubActivity } from '@/modules/projects/model';
 import { EditableText } from '@/modules/projects/report/EditableText';
-import { CountBadge, EmptyBox, MiddleCard, MiddleTitle, ScreenOnly, ScrollList, SubActivityItem, Subtitle } from '@/modules/projects/report/styles';
+import {
+  CountBadge,
+  EmptyBox,
+  MiddleCard,
+  MiddleTitle,
+  ScreenOnly,
+  ScrollList,
+  SubActivitiesColumn,
+  SubActivityItem,
+  Subtitle,
+} from '@/modules/projects/report/styles';
 import type { Activity, Project } from '@/modules/projects/types';
 import { colors } from '@/theme';
 
@@ -29,7 +39,8 @@ export function SubActivitiesCard({ project, activity, editing, onChange, onTogg
   }
 
   return (
-    <MiddleCard>
+    <SubActivitiesColumn>
+      <MiddleCard>
       <MiddleTitle>
         <span>
           Subatividades <Subtitle>{activity ? `de: ${activity.name}` : 'Selecione uma atividade para detalhar'}</Subtitle>
@@ -87,6 +98,7 @@ export function SubActivitiesCard({ project, activity, editing, onChange, onTogg
           ))}
         </ScrollList>
       )}
-    </MiddleCard>
+      </MiddleCard>
+    </SubActivitiesColumn>
   );
 }
