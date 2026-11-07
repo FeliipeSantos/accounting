@@ -26,7 +26,7 @@ COLLECTION_WAIT_SECONDS = 25
 
 
 def worker_exit(server, worker):
-    """Waits for a manual collection in progress before the worker exits (as the Node server did)."""
+    """Waits for a manual collection in progress before the worker exits."""
     from app.modules.intelligence import monitor
 
     deadline = time.monotonic() + COLLECTION_WAIT_SECONDS

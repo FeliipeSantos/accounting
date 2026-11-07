@@ -12,7 +12,7 @@ ID_PATTERN = r"^[A-Za-z0-9_-]{1,100}$"
 MAX_NAME_LENGTH = 300
 
 INVALID_PROJECT = "Projeto inválido"
-# Mensagens na mesma ordem de prioridade do servidor Node (o primeiro erro vence)
+# Mensagens em ordem de prioridade (o primeiro erro vence)
 FIELD_MESSAGES = {
     "id": "Identificador do projeto inválido",
     "name": f"O projeto precisa de um nome (até {MAX_NAME_LENGTH} caracteres)",

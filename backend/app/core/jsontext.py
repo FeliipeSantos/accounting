@@ -1,5 +1,5 @@
-"""JSON text in the same format as JavaScript's JSON.stringify, so the Node and
-Flask servers write identical text to the shared database."""
+"""JSON text in the same format as JavaScript's JSON.stringify, the format of the
+text already stored in the database and sent by the browser."""
 
 import json
 from typing import Any

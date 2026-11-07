@@ -1,6 +1,6 @@
 # systemd unit do backend Flask — copie para /etc/systemd/system/project-accounting-api.service
-# Substitui project-accounting.service (Node). Os dois usam a porta 8080: só um fica ativo.
-# Veja DEPLOY-FLASK.md.
+# Veja DEPLOY.md. Em VPS vinda da versão antiga, não roda junto com o
+# project-accounting.service (Node): os dois usariam a porta 8080.
 
 [Unit]
 Description=Project Accounting API (Flask + gunicorn)

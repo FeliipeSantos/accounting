@@ -1,4 +1,4 @@
-"""Settings read from environment variables (same names as the Node server; see .env.example)."""
+"""Settings read from environment variables (see .env.example)."""
 
 import os
 from dataclasses import dataclass
@@ -27,7 +27,8 @@ class Settings:
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
         env = os.environ if env is None else env
-        production = env.get("NODE_ENV") == "production"
+        # APP_ENV; NODE_ENV continua aceito para .env criados na época do servidor Node
+        production = (env.get("APP_ENV") or env.get("NODE_ENV")) == "production"
         cookie_flag = env.get("COOKIE_SECURE")
         db_path = Path(env.get("DB_PATH") or PROJECT_ROOT / "data" / "app.db")
         backup_dir = env.get("BACKUP_DIR")

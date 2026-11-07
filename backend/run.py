@@ -2,7 +2,7 @@
 
 Reads PORT and HOST from the environment (PORT=0 picks a free port) and prints
 "localhost:<port>" once listening, as the API contract requires. Also serves the
-screen files, which Nginx serves in production (gunicorn runs wsgi.py).
+React build (frontend/dist), which Nginx serves in production (gunicorn runs wsgi.py).
 """
 
 import logging

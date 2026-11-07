@@ -1,13 +1,12 @@
 # Contrato da API
 
-Referência do comportamento HTTP do sistema. Qualquer backend (o atual em Node ou o novo em Flask) precisa respeitar este contrato. Os testes em `tests/contract/` verificam exatamente isto, contra qualquer servidor:
+Referência do comportamento HTTP do sistema, que o backend (`backend/`) precisa respeitar e que o frontend (`frontend/`) usa. Os testes em `tests/contract/` (na máquina de desenvolvimento) verificam exatamente isto, fazendo pedidos HTTP ao servidor:
 
 ```bash
-npm run test:contract          # servidor Node
-npm run test:contract:flask    # backend Flask (backend/.venv)
+node tests/run-contract.js
 ```
 
-Outro servidor qualquer: `TEST_SERVER_CMD` (comando) e `TEST_SERVER_CWD` (pasta) com `node --test tests/contract/`.
+Outro servidor qualquer: `TEST_SERVER_CMD` (comando) e `TEST_SERVER_CWD` (pasta).
 
 ## 1. Processo
 
@@ -17,10 +16,9 @@ O servidor de testes é iniciado como processo filho. Ele precisa:
 |---|---|
 | `PORT` | Porta de escuta; `0` = porta livre escolhida pelo sistema |
 | `HOST` | Endereço de escuta (vazio = todas as interfaces) |
-| `DB_PATH` | Caminho do SQLite. O Node aplica as próprias migrations ao iniciar. O Flask exige as tabelas já criadas (`flask db upgrade`, aplicado manualmente) e, sem elas, termina com código ≠ 0 pedindo esse comando |
-| `INTEL_SCHEDULER=off` | Não agenda coletas automáticas |
-| `BACKUP_SCHEDULER=off` | Não agenda backups |
-| `NODE_ENV=production` | Exige usuário real no banco e marca o cookie como `Secure` |
+| `DB_PATH` | Caminho do SQLite. O servidor exige as tabelas já criadas (`flask db upgrade`, aplicado manualmente) e, sem elas, termina com código ≠ 0 pedindo esse comando |
+| `INTEL_SCHEDULER=off` | A coleta diária automática fica desligada (`schedulerEnabled: false`) |
+| `APP_ENV=production` | Exige usuário real no banco e marca o cookie como `Secure` (`NODE_ENV` ainda é aceito) |
 | `SESSION_TTL_HOURS` | Duração da sessão sem uso (padrão 8) |
 | `TRUST_PROXY=true` | Usa o primeiro IP do `X-Forwarded-For` no limite de login |
 | `COOKIE_SECURE` | `true`/`false` força o atributo `Secure` |
@@ -154,5 +152,5 @@ Fonte que entra no catálogo depois vem ativada. As escolhas do usuário para as
 
 ## 7. Fora do contrato
 
-- **Arquivos estáticos:** o frontend é servido pelo Node hoje e pelo Nginx após a troca. Os testes ficam em `tests/node/static.test.js`.
-- **Detalhes internos:** coletores, classificador, agendador e backup têm testes próprios em `tests/node/`. Eles serão portados para pytest junto com cada etapa da migração.
+- **Arquivos da tela:** o build do React é servido pelo Nginx em produção (`deploy/nginx.conf`) e pelo `run.py` em desenvolvimento.
+- **Detalhes internos:** coletores, classificador, agendamento, backup e o esquema do banco têm testes próprios em pytest (`backend/tests/`). As regras do frontend têm testes em Vitest (`frontend/src/**/*.test.ts`).

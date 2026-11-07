@@ -30,7 +30,7 @@ NOT_FOUND_MESSAGE = "Rota não encontrada"
 
 
 def json_response(payload, status: int = 200) -> Response:
-    """JSON response with the same encoding as the Node server (UTF-8, no escaping)."""
+    """JSON response encoded like JavaScript's JSON.stringify (UTF-8, no escaping)."""
     return Response(dumps_js(payload), status=status, mimetype="application/json")
 
 
@@ -69,7 +69,7 @@ def _after_request(response: Response) -> Response:
 def _handle_http_error(error: HTTPException):
     if isinstance(error, RequestEntityTooLarge):
         return json_error(413, "Conteúdo muito grande")
-    # método não aceito responde como rota inexistente, como no servidor Node
+    # método não aceito responde como rota inexistente
     if error.code in (404, 405):
         return json_error(404, NOT_FOUND_MESSAGE)
     return json_error(error.code or 500, error.description or "Erro")

@@ -1,7 +1,6 @@
 """Data access of the Inteligência Contábil module (tables intel_*).
 
-Same queries as the Node version; JSON columns are written with dumps_js so both
-servers store identical text. Functions do not commit unless stated: callers group
+JSON columns are written with dumps_js, the same text format already stored. Functions do not commit unless stated: callers group
 writes in one transaction.
 """
 

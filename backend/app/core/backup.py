@@ -1,5 +1,5 @@
 """Database backups: consistent copies taken with the system running (VACUUM INTO),
-keeping only the most recent ones. Same file names as the Node server."""
+keeping only the most recent ones (files app-YYYY-MM-DD_HHMMSS.db)."""
 
 import re
 import sqlite3

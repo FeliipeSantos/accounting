@@ -9,7 +9,7 @@ from sqlalchemy.engine import Engine
 
 @event.listens_for(Engine, "connect")
 def _sqlite_pragmas(dbapi_connection, _record):
-    """Same PRAGMAs as the Node server: WAL, foreign keys and a busy timeout."""
+    """PRAGMAs of every connection: WAL, foreign keys and a busy timeout."""
     if dbapi_connection.__class__.__module__.startswith("sqlite3"):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA journal_mode = WAL")

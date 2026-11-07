@@ -8,7 +8,7 @@ from sqlalchemy import inspect
 
 from app.config import EXPECTED_TIMEZONE, PROJECT_ROOT, Settings
 
-# O .env fica na raiz do projeto, compartilhado com o servidor Node durante a migração
+# O .env fica na raiz do projeto
 load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 logger = logging.getLogger(__name__)

@@ -1,8 +1,9 @@
-node_modules/
 .DS_Store
 .env
 
-# Python (backend Flask)
+# Dependências e arquivos gerados
+node_modules/
+frontend/dist/
 .venv/
 __pycache__/
 *.pyc
@@ -14,10 +15,6 @@ data/
 *.db
 *.db-wal
 *.db-shm
-db.json
-intelligence-db.json
-*.imported.json
-*.json.*.tmp
 backups/
 
 # Documentos internos
@@ -26,4 +23,4 @@ backups/
 # Só para desenvolvimento: ficam na máquina local, não vão para o servidor
 tests/
 .claude/
-intelligence/SOURCES.md
+docs/fontes-oficiais.md

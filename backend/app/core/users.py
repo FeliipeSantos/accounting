@@ -1,7 +1,7 @@
 """User accounts in the database (table core_users).
 
-Password hashes use the same format and scrypt parameters as the Node server,
-so existing passwords keep working: scrypt$<salt base64url>$<hash base64url>.
+Password hashes use the same format and scrypt parameters as the previous version
+(Node), so passwords created before keep working: scrypt$<salt base64url>$<hash base64url>.
 """
 
 import base64
@@ -19,7 +19,7 @@ from app.extensions import db
 
 logger = logging.getLogger(__name__)
 
-# Parâmetros padrão do crypto.scryptSync do Node
+# Parâmetros da versão anterior (padrão do crypto.scryptSync do Node)
 SCRYPT_N = 16384
 SCRYPT_R = 8
 SCRYPT_P = 1

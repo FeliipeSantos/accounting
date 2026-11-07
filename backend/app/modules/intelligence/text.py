@@ -1,4 +1,4 @@
-"""Text helpers shared by collectors and classifier (same rules as the Node version).
+"""Text helpers shared by collectors and classifier.
 
 Output is always plain text.
 """
@@ -13,7 +13,7 @@ NAMED_ENTITIES = {
     "gt": ">",
     "quot": '"',
     "apos": "'",
-    # espaço comum, como na versão Node
+    # espaço comum (não o caractere 0xA0), para a busca e a comparação de textos
     "nbsp": " ",
     "ordm": "º",
     "ordf": "ª",
