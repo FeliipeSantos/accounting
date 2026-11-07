@@ -1,0 +1,38 @@
+# systemd unit do backend Flask — copie para /etc/systemd/system/project-accounting-api.service
+# Substitui project-accounting.service (Node). Os dois usam a porta 8080: só um fica ativo.
+# Veja DEPLOY-FLASK.md.
+
+[Unit]
+Description=Project Accounting API (Flask + gunicorn)
+After=network-online.target
+Wants=network-online.target
+Conflicts=project-accounting.service
+
+[Service]
+Type=simple
+User=project-accounting
+Group=project-accounting
+WorkingDirectory=/opt/project-accounting/backend
+EnvironmentFile=/opt/project-accounting/.env
+ExecStart=/opt/project-accounting/backend/.venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
+Restart=always
+RestartSec=5
+# Dá tempo para uma coleta manual em andamento terminar ao parar/reiniciar
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+# --- Endurecimento -------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# Único lugar onde o processo pode gravar: os dados
+ReadWritePaths=/var/lib/project-accounting
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

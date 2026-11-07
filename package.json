@@ -7,6 +7,8 @@
     "start": "node --env-file-if-exists=.env server.js",
     "dev": "node --env-file-if-exists=.env --watch server.js",
     "test": "node --test \"tests/**/*.test.js\"",
+    "test:contract": "node tests/run-contract.js node",
+    "test:contract:flask": "node tests/run-contract.js flask",
     "intel:run": "node --env-file-if-exists=.env intelligence/cli.js run",
     "intel:reclassify": "node --env-file-if-exists=.env intelligence/cli.js reclassify",
     "intel:check": "node --env-file-if-exists=.env intelligence/cli.js check",

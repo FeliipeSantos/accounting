@@ -1,0 +1,13 @@
+# Uma cópia do banco por dia, às 03:00 — copie para /etc/systemd/system/
+# Persistent=true: se a VPS estava desligada no horário, a cópia é feita ao ligar.
+
+[Unit]
+Description=Project Accounting — cópia diária do banco
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+Unit=project-accounting-backup.service
+
+[Install]
+WantedBy=timers.target

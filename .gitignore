@@ -2,6 +2,13 @@ node_modules/
 .DS_Store
 .env
 
+# Python (backend Flask)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
 # Dados reais: ficam só na máquina/VPS
 data/
 *.db
