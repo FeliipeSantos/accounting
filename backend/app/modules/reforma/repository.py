@@ -640,8 +640,35 @@ def list_events(date_from: str, date_to: str, filters: dict) -> list[dict]:
     stored = merge_duplicates(_without_confirmed_citations(events))
     # prazos recorrentes: calculados para o período, não guardados
     recurring_events = [e for e in recurring.occurrences(date_from, date_to) if recurring.matches(e, filters)]
+    if recurring_events:
+        recurring.attach_reviews(recurring_events, recurring_reviews())
     rank = {"critico": 0, "alto": 1, "medio": 2}
     return sorted([*stored, *recurring_events], key=lambda e: (e["date"], rank.get(e["importance"], 3), e["title"]))
+
+
+def recurring_reviews() -> dict[str, list[dict]]:
+    """Acts published after the recurring rules were checked that may change one of them."""
+    since = min([recurring.checked_on(r) for r in recurring.RULES], default=None)
+    if since is None:
+        return {}
+    rows = _rows(
+        "SELECT d.id, d.title, d.url, substr(coalesce(d.published_at, v.published_at, d.first_seen_at), 1, 10) AS day, "
+        "v.summary, substr(v.full_text, 1, 3000) AS head "
+        "FROM reforma_documents d LEFT JOIN reforma_document_versions v ON v.id = d.current_version_id "
+        "WHERE substr(coalesce(d.published_at, v.published_at, d.first_seen_at), 1, 10) > :since",
+        since=since,
+    )
+    documents = [
+        {
+            "id": r["id"],
+            "title": r["title"],
+            "url": r["url"],
+            "date": r["day"],
+            "text": normalize_for_match(" ".join(part for part in (r["title"], r["summary"], r["head"]) if part)),
+        }
+        for r in rows
+    ]
+    return recurring.reviews(documents)
 
 
 def _cited_act_of(note: str) -> str:

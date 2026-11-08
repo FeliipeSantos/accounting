@@ -1,11 +1,11 @@
 import { ClockCircleOutlined, DiffOutlined, FileSearchOutlined, FileTextOutlined, WarningOutlined } from '@ant-design/icons';
-import { Table, Tooltip } from 'antd';
+import { Alert, Table, Tooltip } from 'antd';
 import styled from 'styled-components';
 
 import { useLoad } from '@/core/hooks/useLoad';
 import { SectionCard, StatCard, StatGrid, StatusBadge, TableFrame } from '@/core/ui';
 import { reformaApi } from '@/modules/reforma/api';
-import { formatDateTime, formatDuration, RUN_STATUS, runOutcome, TRIGGER_LABELS } from '@/modules/reforma/format';
+import { formatDate, formatDateTime, formatDuration, RUN_STATUS, runOutcome, TRIGGER_LABELS } from '@/modules/reforma/format';
 import type { Source, Status, SyncRun } from '@/modules/reforma/types';
 import { colors, fontSize } from '@/theme';
 
@@ -22,6 +22,12 @@ const Note = styled.div`
 
 const Numeric = styled.span`
   font-variant-numeric: tabular-nums;
+`;
+
+const ReviewList = styled.ul`
+  margin: 4px 0 0;
+  padding-left: 18px;
+  overflow-wrap: anywhere;
 `;
 
 const ErrorText = styled.span`
@@ -71,6 +77,31 @@ export function SourcesView({ status, refreshKey }: { status: Status; refreshKey
           hint={failing ? `${failing} com erro na última consulta` : 'consultadas com sucesso'}
         />
       </StatGrid>
+
+      {status.recurringReviews.length > 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Prazos recorrentes para revisar"
+          description={
+            <ReviewList>
+              {status.recurringReviews.map((review) => (
+                <li key={review.ruleId}>
+                  <strong>{review.title}</strong> (conferido em {formatDate(review.since)}):{' '}
+                  {review.acts.map((act, index) => (
+                    <span key={act.documentId}>
+                      {index > 0 && ' · '}
+                      <a href={act.url} target="_blank" rel="noopener noreferrer">
+                        {act.title} ({formatDate(act.date)}) ↗
+                      </a>
+                    </span>
+                  ))}
+                </li>
+              ))}
+            </ReviewList>
+          }
+        />
+      )}
 
       <SectionCard title="Fontes monitoradas" flush>
         <TableFrame>

@@ -22,7 +22,7 @@ from flask import Blueprint, current_app, g, request
 
 from app.core.http import json_error, json_response
 from app.modules.intelligence.catalog import SUBJECT_IDS
-from app.modules.reforma import access, monitor, repository, scheduler
+from app.modules.reforma import access, monitor, recurring, repository, scheduler
 from app.modules.reforma import events as events_module
 from app.modules.reforma.catalog import KINDS, SOURCE_IDS, SOURCES
 from app.modules.reforma.subjects import subject_list
@@ -70,6 +70,7 @@ def status():
             "events": repository.event_totals(datetime.now().astimezone().strftime("%Y-%m-%d")),
             "eventKinds": events_module.CALENDAR_KINDS,
             "subjects": subject_list(),
+            "recurringReviews": recurring.review_list(repository.recurring_reviews()),
             "kinds": KINDS,
             "sources": [{**source, "documents": counts.get(source["id"], 0), "last": results.get(source["id"])} for source in SOURCES],
         }

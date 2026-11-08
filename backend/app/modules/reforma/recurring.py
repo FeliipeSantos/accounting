@@ -10,6 +10,7 @@ Corpus Christi and state or municipal holidays are not considered; when the rule
 them, the note of the date says so.
 """
 
+import re
 from datetime import date, timedelta
 
 from app.modules.reforma.events import CALENDAR_KINDS
@@ -20,11 +21,16 @@ STATUS = "recorrente"
 LEGAL_STATUS = "Regra recorrente da legislação"
 # o "a seguir" conta as ocorrências dos próximos 12 meses
 UPCOMING_DAYS = 365
+# dia em que as regras foram conferidas nas fontes oficiais; ao atualizar uma regra, atualize
+# o "checkedOn" dela: os atos publicados até esse dia deixam de gerar o alerta
+CHECKED_ON = "2026-11-08"
 
+# watch: palavras que identificam a obrigação num ato novo (texto sem acentos, minúsculo)
 # rule: ("last_business_day",) | ("last_day",) | ("day", n) | ("day", n, "before"|"after") for a non-business day
 RULES: list[dict] = [
     {
         "id": "simei-opcao",
+        "watch": r"\bsimei\b",
         "title": "Opção pelo SIMEI (MEI já inscrito no CNPJ)",
         "kind": "prazo",
         "subjects": ["simples-nacional"],
@@ -41,6 +47,7 @@ RULES: list[dict] = [
     },
     {
         "id": "dasn-simei",
+        "watch": r"\bdasn-?simei\b|declaracao anual simplificada do microempreendedor",
         "title": "DASN-SIMEI (declaração anual do MEI)",
         "kind": "prazo",
         "subjects": ["simples-nacional", "obrigacoes-acessorias"],
@@ -57,6 +64,7 @@ RULES: list[dict] = [
     },
     {
         "id": "defis",
+        "watch": r"\bdefis\b|declaracao de informacoes socioeconomicas e fiscais",
         "title": "DEFIS (declaração anual do Simples Nacional)",
         "kind": "prazo",
         "subjects": ["simples-nacional", "obrigacoes-acessorias"],
@@ -73,6 +81,7 @@ RULES: list[dict] = [
     },
     {
         "id": "ecd",
+        "watch": r"\becd\b|escrituracao contabil digital",
         "title": "ECD (Escrituração Contábil Digital)",
         "kind": "prazo",
         "subjects": ["sped", "obrigacoes-acessorias"],
@@ -89,6 +98,7 @@ RULES: list[dict] = [
     },
     {
         "id": "ecf",
+        "watch": r"\becf\b|escrituracao contabil fiscal",
         "title": "ECF (Escrituração Contábil Fiscal)",
         "kind": "prazo",
         "subjects": ["sped", "irpj-csll", "obrigacoes-acessorias"],
@@ -105,6 +115,7 @@ RULES: list[dict] = [
     },
     {
         "id": "das",
+        "watch": r"documento de arrecadacao do simples|\b(?:pagamento|vencimento|recolhimento) do das\b|\bdas(?:-| do )mei\b",
         "title": "DAS do Simples Nacional (apuração do mês anterior)",
         "kind": "prazo",
         "subjects": ["simples-nacional"],
@@ -120,6 +131,7 @@ RULES: list[dict] = [
     },
     {
         "id": "dctfweb",
+        "watch": r"\bdctf ?web\b",
         "title": "DCTFWeb (fatos geradores do mês anterior)",
         "kind": "prazo",
         "subjects": ["previdenciaria", "obrigacoes-acessorias"],
@@ -136,6 +148,7 @@ RULES: list[dict] = [
     },
     {
         "id": "efd-reinf",
+        "watch": r"\befd-? ?reinf\b",
         "title": "EFD-Reinf (eventos do mês anterior)",
         "kind": "prazo",
         "subjects": ["sped", "obrigacoes-acessorias"],
@@ -263,3 +276,64 @@ def matches(event: dict, filters: dict) -> bool:
     if filters.get("importance") and event["importance"] not in filters["importance"]:
         return False
     return not (filters.get("subjects") and not set(filters["subjects"]) & set(event["subjects"]))
+
+
+# um ato que muda o prazo: prorroga, adia, antecipa, altera, extingue ou dispensa
+_CHANGE = re.compile(
+    r"prorrog|\badia\b|\badiad|\badiament|antecip|novos? prazos?|\balter(?:a|am|ou|ad[oa]s?|acao|acoes)\b|"
+    r"passa(?:m|ra|rao)? a (?:ser|vigorar|vencer)|\bextin|\bdispens|\bsubstitu|\brevog"
+)
+# o assunto do prazo perto da mudança: o mesmo trecho, não um ato que só cita a obrigação
+_DEADLINE = re.compile(r"\bprazo|vencimento|\bentreg|transmi|apresenta|recolhiment|pagament|\bopcao\b|\bdeclar")
+_WINDOW = 300
+# prorrogações só para municípios atingidos por calamidade: não mudam a regra geral
+_REGIONAL = re.compile(r"calamidade|atingid[oa]s? (?:por|pel)|desastre|enchente|fortes chuvas")
+
+
+def checked_on(rule: dict) -> str:
+    return rule.get("checkedOn", CHECKED_ON)
+
+
+def touches(rule: dict, text: str) -> bool:
+    """A text (normalized) that names the obligation and, near it, a change of its deadline."""
+    if _REGIONAL.search(text):
+        return False
+    for found in re.finditer(rule["watch"], text):
+        start, end = max(0, found.start() - _WINDOW), found.end() + _WINDOW
+        near = text[start:end]
+        # antecipar parcelas de um parcelamento não muda o vencimento
+        if _CHANGE.search(near) and _DEADLINE.search(near) and "parcelament" not in near:
+            return True
+    return False
+
+
+def reviews(documents: list[dict]) -> dict[str, list[dict]]:
+    """The acts published after each rule was checked that may change it, by rule id.
+
+    documents: {id, title, url, date (yyyy-mm-dd), text (normalized title + summary + start)}."""
+    found: dict[str, list[dict]] = {}
+    for rule in RULES:
+        since = checked_on(rule)
+        acts = [
+            {"documentId": d["id"], "title": d["title"], "url": d["url"], "date": d["date"]}
+            for d in documents
+            if d["date"] and d["date"] > since and touches(rule, d["text"])
+        ]
+        if acts:
+            found[rule["id"]] = sorted(acts, key=lambda a: a["date"], reverse=True)
+    return found
+
+
+def attach_reviews(events: list[dict], found: dict[str, list[dict]]) -> list[dict]:
+    """Marks the occurrences of a rule that may have changed (review: since + acts)."""
+    for event in events:
+        rule_id = event["id"][len("rec-") : -len("-yyyy-mm-dd")]
+        acts = found.get(rule_id)
+        rule = next((r for r in RULES if r["id"] == rule_id), None)
+        event["review"] = {"since": checked_on(rule), "acts": acts} if acts and rule else None
+    return events
+
+
+def review_list(found: dict[str, list[dict]]) -> list[dict]:
+    """The rules to review, for the status (tab Fontes)."""
+    return [{"ruleId": r["id"], "title": r["title"], "since": checked_on(r), "acts": found[r["id"]]} for r in RULES if r["id"] in found]

@@ -1,4 +1,4 @@
-import { Button, Flex, Tag } from 'antd';
+import { Alert, Button, Flex, Tag } from 'antd';
 import styled from 'styled-components';
 
 import { HintBadge } from '@/modules/reforma/components/HintBadge';
@@ -121,6 +121,26 @@ export function EventCard({ event, kindName, subjectName = (id) => id, sourceNam
         <Changes>
           <strong>{event.origin === 'recorrente' ? 'Base legal:' : 'O que muda:'}</strong> {event.document.summary}
         </Changes>
+      )}
+      {event.review && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Pode ter mudado"
+          description={
+            <>
+              Depois de {formatDate(event.review.since)}, quando a regra foi conferida, saiu um ato que pode alterar este prazo. Confira antes de usar a data:{' '}
+              {event.review.acts.map((act, index) => (
+                <span key={act.documentId}>
+                  {index > 0 && ' · '}
+                  <a href={act.url} target="_blank" rel="noopener noreferrer">
+                    {act.title} ({formatDate(act.date)}) ↗
+                  </a>
+                </span>
+              ))}
+            </>
+          }
+        />
       )}
       <Quote>{event.quote}</Quote>
       <Meta>

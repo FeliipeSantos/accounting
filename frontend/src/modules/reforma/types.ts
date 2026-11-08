@@ -47,6 +47,23 @@ export interface Totals {
   pendingFiles: number;
 }
 
+/** An act published after a recurring rule was checked that may change its deadline. */
+export interface ReviewAct {
+  documentId: string;
+  title: string;
+  url: string;
+  date: string;
+}
+
+/** A recurring rule that may have changed: review it against the acts. */
+export interface RecurringReview {
+  ruleId: string;
+  title: string;
+  /** Day the rule was checked against the official source. */
+  since: string;
+  acts: ReviewAct[];
+}
+
 export interface Status {
   running: boolean;
   lastRun: SyncRun | null;
@@ -59,6 +76,8 @@ export interface Status {
   /** Subjects of the calendar filter (the same list as the Publicações module). */
   subjects: { id: string; name: string }[];
   events: { total: number; upcoming: number; pendingExtraction: number };
+  /** Recurring rules that a newer act may have changed. */
+  recurringReviews: RecurringReview[];
   sources: Source[];
 }
 
@@ -151,6 +170,8 @@ export interface CalendarEvent {
   };
   /** Subjects of the event (Reforma Tributária, ICMS...). */
   subjects: string[];
+  /** Recurring deadlines only: newer acts that may have changed the rule. */
+  review?: { since: string; acts: ReviewAct[] } | null;
   /** The same change found in other documents (the same act from another source, the same news). */
   alsoIn: {
     eventId: string;
