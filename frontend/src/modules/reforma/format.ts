@@ -104,6 +104,11 @@ export const DATE_STATUS: Record<string, { label: string; tone: Tone; hint: stri
     tone: 'neutral',
     hint: 'Data de notícia ou comunicado, ou descrita como prevista: não é obrigação legal',
   },
+  recorrente: {
+    label: 'Prazo recorrente',
+    tone: 'info',
+    hint: 'Data calculada por uma regra fixa da legislação que se repete todo mês ou todo ano, com o trecho da fonte oficial da regra',
+  },
 };
 
 /** What the event is about: the row of a schedule ("NFS-e") or the document ("Nota Técnica 2026.008"). */

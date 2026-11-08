@@ -91,6 +91,15 @@ SOURCES: list[dict] = [
         "note": "Anúncios da Reforma publicados fora da seção própria (ex.: NFS-e Nacional para o Simples Nacional).",
     },
     {
+        "id": "recorrentes",
+        "name": "Prazos recorrentes da legislação",
+        "url": "https://www.gov.br/receitafederal",
+        "method": (
+            "Regras fixas com base legal (SIMEI, DASN-SIMEI, DEFIS, ECD, ECF, DAS, DCTFWeb, EFD-Reinf); datas calculadas pelo sistema"
+        ),
+        "note": "Cada regra traz o trecho da fonte oficial. Dias úteis consideram fins de semana e feriados nacionais.",
+    },
+    {
         "id": "paginas",
         "name": "Páginas oficiais monitoradas",
         "url": "https://www.gov.br/fazenda/pt-br/acesso-a-informacao/acoes-e-programas/reforma-tributaria",

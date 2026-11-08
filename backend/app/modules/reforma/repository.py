@@ -12,6 +12,7 @@ from sqlalchemy import text
 from app.core.database import utc_now_iso
 from app.extensions import db
 from app.modules.intelligence.text import normalize_for_match, parse_iso_datetime
+from app.modules.reforma import recurring
 from app.modules.reforma.events import date_reason, importance_reason
 from app.modules.reforma.subjects import subjects_of
 
@@ -636,7 +637,11 @@ def list_events(date_from: str, date_to: str, filters: dict) -> list[dict]:
     if filters.get("subjects"):
         wanted = set(filters["subjects"])
         events = [e for e in events if wanted & set(e["subjects"])]
-    return merge_duplicates(_without_confirmed_citations(events))
+    stored = merge_duplicates(_without_confirmed_citations(events))
+    # prazos recorrentes: calculados para o período, não guardados
+    recurring_events = [e for e in recurring.occurrences(date_from, date_to) if recurring.matches(e, filters)]
+    rank = {"critico": 0, "alto": 1, "medio": 2}
+    return sorted([*stored, *recurring_events], key=lambda e: (e["date"], rank.get(e["importance"], 3), e["title"]))
 
 
 def _cited_act_of(note: str) -> str:
@@ -722,4 +727,12 @@ def event_totals(today: str) -> dict:
         "(SELECT COUNT(*) FROM reforma_document_versions WHERE events_status = 'pending') AS pending",
         t=today,
     )
-    return {"total": row["total"], "upcoming": row["upcoming"], "pendingExtraction": row["pending"]}
+    # os recorrentes contam nos próximos 12 meses (seriam infinitos)
+    horizon = (datetime.fromisoformat(today) + timedelta(days=recurring.UPCOMING_DAYS)).date().isoformat()
+    upcoming_recurring = len(recurring.occurrences(today, horizon))
+    return {
+        "total": row["total"],
+        "upcoming": row["upcoming"] + upcoming_recurring,
+        "recurringUpcoming": upcoming_recurring,
+        "pendingExtraction": row["pending"],
+    }

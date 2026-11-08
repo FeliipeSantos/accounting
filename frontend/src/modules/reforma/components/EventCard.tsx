@@ -119,13 +119,13 @@ export function EventCard({ event, kindName, subjectName = (id) => id, sourceNam
       {subject !== event.document.title && <Meta>Em: {event.document.title}</Meta>}
       {event.document.summary && (
         <Changes>
-          <strong>O que muda:</strong> {event.document.summary}
+          <strong>{event.origin === 'recorrente' ? 'Base legal:' : 'O que muda:'}</strong> {event.document.summary}
         </Changes>
       )}
       <Quote>{event.quote}</Quote>
       <Meta>
         {event.legalStatus} · {sourceName(event.document.sourceId)}
-        {event.dateNote ? ` · ${event.dateNote}` : ''} · extraído por regra do texto oficial
+        {event.dateNote ? ` · ${event.dateNote}` : ''} · {event.origin === 'recorrente' ? 'calculado pela regra da legislação' : 'extraído por regra do texto oficial'}
       </Meta>
       {event.alsoIn.length > 0 && (
         <Meta>
@@ -141,9 +141,12 @@ export function EventCard({ event, kindName, subjectName = (id) => id, sourceNam
         </Meta>
       )}
       <Flex gap={8} wrap>
-        <Button size="small" onClick={() => onOpenDocument(event.documentId)}>
-          Ver documento e versões
-        </Button>
+        {/* prazos recorrentes não vêm de um documento guardado: só a fonte oficial da regra */}
+        {event.documentId && (
+          <Button size="small" onClick={() => onOpenDocument(event.documentId)}>
+            Ver documento e versões
+          </Button>
+        )}
         <Button size="small" type="link" href={event.document.url} target="_blank" rel="noopener noreferrer">
           Fonte oficial ↗
         </Button>

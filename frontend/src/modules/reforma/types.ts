@@ -128,7 +128,7 @@ export interface CalendarEvent {
   date: string;
   title: string;
   quote: string;
-  dateStatus: 'confirmada' | 'citada' | 'previsao';
+  dateStatus: 'confirmada' | 'citada' | 'previsao' | 'recorrente';
   dateNote: string | null;
   legalStatus: string;
   importance: Importance;
@@ -136,7 +136,7 @@ export interface CalendarEvent {
   importanceReason: string;
   /** Why the date is official, cited or a forecast (one sentence). */
   dateReason: string;
-  origin: 'regra' | 'ia' | 'manual';
+  origin: 'regra' | 'ia' | 'manual' | 'recorrente';
   status: 'ativo' | 'substituido';
   createdAt: string;
   updatedAt: string;
