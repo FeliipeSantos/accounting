@@ -1,16 +1,6 @@
-import {
-  AuditOutlined,
-  CalendarOutlined,
-  CheckCircleFilled,
-  ClockCircleOutlined,
-  CloseCircleFilled,
-  ExclamationCircleFilled,
-  FileTextOutlined,
-  NotificationOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
+import { AuditOutlined, CalendarOutlined, FileTextOutlined, NotificationOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
-import { type ReactNode, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -20,10 +10,10 @@ import { intelligenceApi } from '@/modules/intelligence/api';
 import { BarList } from '@/modules/intelligence/components/BarList';
 import { PublicationList } from '@/modules/intelligence/components/PublicationCard';
 import { useIntelligence } from '@/modules/intelligence/context';
-import { formatDateTime, groupSameAct, localDaysAgo, REFORM_GROUP, REFORM_SUBJECTS, RUN_STATUS, RUN_TONE } from '@/modules/intelligence/format';
+import { groupSameAct, localDaysAgo, REFORM_GROUP, REFORM_SUBJECTS } from '@/modules/intelligence/format';
 import { publicationsPath, tabPath } from '@/modules/intelligence/paths';
-import type { Publication, Run, RunStatus, Summary } from '@/modules/intelligence/types';
-import { fontSize, type Tone, tones } from '@/theme';
+import type { Publication, Summary } from '@/modules/intelligence/types';
+import { fontSize } from '@/theme';
 
 const Stack = styled.div`
   display: flex;
@@ -53,44 +43,12 @@ const CardLink = styled(Button)`
   }
 `;
 
-const StatusIcon = styled.span<{ $tone: Tone }>`
-  display: inline-flex;
-  color: ${({ $tone }) => tones[$tone].fg};
-`;
-
-const StatusText = styled.span<{ $tone: Tone }>`
-  font-weight: 500;
-  color: ${({ $tone }) => ($tone === 'success' ? tones.success.fg : 'inherit')};
-`;
-
-const RUN_ICONS: Record<RunStatus, ReactNode> = {
-  success: <CheckCircleFilled />,
-  partial: <ExclamationCircleFilled />,
-  failed: <CloseCircleFilled />,
-  running: <SyncOutlined spin />,
-};
-
-/** Status line under the "Última Execução" indicator (real status of the last run). */
-function RunHint({ run }: { run: Run | null }) {
-  if (!run) return <>Nenhuma coleta realizada ainda</>;
-  const tone = RUN_TONE[run.status] ?? 'neutral';
-  const text = run.status === 'success' ? 'Concluída com sucesso' : (RUN_STATUS[run.status] ?? run.status);
-  return (
-    <>
-      <StatusIcon $tone={tone} aria-hidden>
-        {RUN_ICONS[run.status]}
-      </StatusIcon>
-      <StatusText $tone={tone}>{text}</StatusText>
-    </>
-  );
-}
-
 function DashboardContent({ summary: data, critical, onChange }: { summary: Summary; critical: Publication[]; onChange: (publication: Publication) => void }) {
   const navigate = useNavigate();
   const { sourceName } = useIntelligence();
   // publicações críticas (pelo filtro da API), já agrupadas pela mesma norma
   const groups = useMemo(() => groupSameAct(critical), [critical]);
-  const { totals, lastRun } = data;
+  const { totals } = data;
   const firstCritical = groups[0];
   const criticalSources = firstCritical ? [firstCritical.primary, ...firstCritical.others].map((p) => sourceName(p.sourceId)) : [];
   const shownCritical = groups.reduce((sum, g) => sum + 1 + g.others.length, 0);
@@ -141,15 +99,6 @@ function DashboardContent({ summary: data, critical, onChange }: { summary: Summ
           hint="IBS, CBS e Imposto Seletivo"
           ariaLabel="Ver publicações da Reforma Tributária"
           onClick={() => navigate(publicationsPath({ subject: REFORM_GROUP }))}
-        />
-        <StatCard
-          icon={<ClockCircleOutlined />}
-          label="Última Execução"
-          value={lastRun ? formatDateTime(lastRun.finishedAt || lastRun.startedAt) : '—'}
-          small
-          hint={<RunHint run={lastRun} />}
-          ariaLabel="Ver o histórico de execuções"
-          onClick={() => navigate(tabPath('historico'))}
         />
       </StatGrid>
 
