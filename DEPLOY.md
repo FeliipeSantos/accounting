@@ -282,7 +282,7 @@ Para acessar por `http://IP-da-VPS:8082`, sem domínio, numa VPS que já roda ou
 
 **O que o script faz:**
 - **Código:** baixa do GitHub para `/opt/project-accounting`.
-- **Tela:** gera o build com um Node.js 24 próprio, em `/opt/project-accounting-node`, sem trocar o Node do sistema.
+- **Tela:** gera o build com um Node.js 24 próprio, em `/opt/project-accounting/.tools/node` (ignorado pelo git), sem trocar o Node do sistema.
 - **Backend:** sobe só em `127.0.0.1:8090`; o Nginx atende na porta 8082 e repassa `/api`.
 - **Isolamento:** não mexe em outras portas, outros sites do Nginx nem no Node do sistema. Se o Nginx não estava instalado, ele não é ligado na porta 80.
 - **Firewall da VPS:** libera a porta 8082 no `ufw` (se ativo) e no `iptables` das imagens da Oracle Cloud.

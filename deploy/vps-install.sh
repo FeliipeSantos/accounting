@@ -18,7 +18,9 @@ PUBLIC_PORT="${PUBLIC_PORT:-8082}"
 API_PORT="${API_PORT:-8090}"
 APP_DIR=/opt/project-accounting
 DATA_DIR=/var/lib/project-accounting
-NODE_DIR=/opt/project-accounting-node
+# Node próprio, dentro da pasta do projeto (ignorado pelo git): uma pasta só por projeto em /opt
+NODE_DIR=$APP_DIR/.tools/node
+OLD_NODE_DIR=/opt/project-accounting-node
 SERVICE_USER=project-accounting
 REPO=https://github.com/FeliipeSantos/accounting.git
 NGINX_SITE=/etc/nginx/sites-available/project-accounting-ip
@@ -74,6 +76,10 @@ step "Backend (Python)"
 "$APP_DIR/backend/.venv/bin/pip" install -q -r "$APP_DIR/backend/requirements.txt"
 
 step "Node.js 24 próprio (só para gerar a tela; o Node do sistema não muda)"
+# instalações antigas guardavam o Node em /opt/project-accounting-node
+if [[ ! -x "$NODE_DIR/bin/node" && -x "$OLD_NODE_DIR/bin/node" ]]; then
+  mkdir -p "$(dirname "$NODE_DIR")" && mv "$OLD_NODE_DIR" "$NODE_DIR"
+fi
 if [[ ! -x "$NODE_DIR/bin/node" ]]; then
   case "$(uname -m)" in
     x86_64) NODE_ARCH=x64 ;;

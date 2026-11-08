@@ -24,3 +24,6 @@ backups/
 tests/
 .claude/
 docs/fontes-oficiais.md
+
+# Node próprio da VPS, baixado pelo deploy/vps-install.sh
+.tools/

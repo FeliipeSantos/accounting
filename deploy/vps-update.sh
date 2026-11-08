@@ -7,7 +7,8 @@
 set -euo pipefail
 
 APP_DIR=/opt/project-accounting
-NODE_DIR=/opt/project-accounting-node
+NODE_DIR=$APP_DIR/.tools/node
+OLD_NODE_DIR=/opt/project-accounting-node
 SERVICE_USER=project-accounting
 NGINX_SITE=/etc/nginx/sites-available/project-accounting-ip
 
@@ -27,6 +28,11 @@ git -C "$APP_DIR" pull --ff-only
 git -C "$APP_DIR" log --oneline -1
 
 step "Backend e tela"
+# instalações antigas guardavam o Node em /opt/project-accounting-node: vai para dentro do projeto
+if [[ ! -x "$NODE_DIR/bin/node" && -x "$OLD_NODE_DIR/bin/node" ]]; then
+  mkdir -p "$(dirname "$NODE_DIR")" && mv "$OLD_NODE_DIR" "$NODE_DIR"
+fi
+[[ -x "$NODE_DIR/bin/node" ]] || fail "Node da tela não encontrado em $NODE_DIR; rode o deploy/vps-install.sh"
 "$APP_DIR/backend/.venv/bin/pip" install -q -r "$APP_DIR/backend/requirements.txt"
 (cd "$APP_DIR/frontend" && PATH="$NODE_DIR/bin:$PATH" npm ci --no-audit --no-fund && PATH="$NODE_DIR/bin:$PATH" npm run build)
 chown -R "root:$SERVICE_USER" "$APP_DIR"
