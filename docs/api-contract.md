@@ -36,7 +36,7 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 - **Sessão:** toda rota em `/api/` exige sessão válida, exceto `/api/auth/*`. Sem sessão a resposta é `401 { "error": "Sessão expirada ou inexistente" }`. Cabeçalhos como `X-User` nunca identificam o usuário.
 - **Escritas:** `POST`, `PUT` e `DELETE` em `/api/` (fora de `/api/auth/*`) exigem `Content-Type: application/json`. Sem ele: `415 { "error": "Envie o conteúdo como application/json" }`. É a proteção contra CSRF.
 - **JSON inválido:** no corpo, responde `400`.
-- **Corpo grande demais:** responde `413`. Os limites são 4 KB no login, 2 MB por projeto e 100 KB na Inteligência Contábil.
+- **Corpo grande demais:** responde `413`. Os limites são 4 KB no login, 2 MB por projeto e 100 KB no módulo Publicações.
 - **Rota inexistente:** em `/api/` responde `404 { "error": "Rota não encontrada" }`.
 - **Erro inesperado:** responde `500` com mensagem genérica, sem detalhes internos.
 - **`OPTIONS`:** responde `204`, sem cabeçalhos CORS. O app é servido pelo mesmo endereço da API.
@@ -89,13 +89,13 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 - **No banco:** `projects_projects(id, name, data, position, created_at, updated_at, updated_by)`, com `updated_by` = usuário da sessão.
 - **Não existe:** `POST /api/projects` (salvar a lista inteira) responde `404`.
 
-## 6. Inteligência Contábil: `/api/intelligence`
+## 6. Publicações: `/api/intelligence`
 
 ### Catálogo e configurações
 
 | Rota | Resposta |
 |---|---|
-| `GET /sources` | Lista das 9 fontes: `{ id, name, url, method, collectable, coverage, defaultSubjects?, enabled, status, count }`. `status` é `{ lastSuccessAt, lastError, lastErrorAt }` ou `null` |
+| `GET /sources` | Lista das 12 fontes: `{ id, name, url, method, collectable, coverage, defaultSubjects?, enabled, status, count }`. `status` é `{ lastSuccessAt, lastError, lastErrorAt }` ou `null` |
 | `GET /subjects` | Lista dos 17 assuntos: `{ id, name, keywords, enabled, count }` |
 | `GET /rules` | Lista de textos que explicam as regras de classificação |
 | `GET /settings` | `{ runTime: "HH:MM", enabledSources: [], enabledSubjects: [] }`. O campo interno `knownSources` não aparece |
@@ -108,7 +108,14 @@ Fonte que entra no catálogo depois vem ativada. As escolhas do usuário para as
 | Rota | Resposta |
 |---|---|
 | `GET /publications` | `{ total, items: [publicação] }` |
-| `GET /publications/:id` | Publicação, ou `404 { "error": "Publicação não encontrada" }` |
+| `GET /publications/:id` | Publicação com `fullText` (só nesta rota), ou `404 { "error": "Publicação não encontrada" }` |
+
+**`fullText` de `/publications/:id`:** o texto completo do ato, lido depois da coleta (DOU, Legislação Federal via DOU e CONFAZ).
+- **Lido:** `{ status: "ok", url, text, points: [{ ref, text, highlights: [valores] }], basis, effective: { ref, text, items: [texto] } | null }`, extraído por regras. `effective` é o artigo da vigência. `basis` diz o que são os `points`:
+  - **`values`:** dispositivos com valores em R$, percentuais, prazos, quantidades e datas.
+  - **`provisions`:** o ato não traz valores; são os seus principais dispositivos (caput dos artigos ou cláusulas).
+  - **`fields`:** texto sem artigos (ex.: Solução de Consulta); são as linhas "Rótulo: valor".
+- **Sem texto:** `{ status: "pending" }` (ainda não buscado), `{ status: "unavailable" }` (notícias, projetos de lei e portais, que não têm texto completo) ou `{ status: "error" }` (falhou; cada coleta refaz até 40, e `flask intel fulltext` refaz todas).
 | `GET /summary` | `{ totals: { publications, critical, recent, reform }, recentDays: 7, byCategory: [{ id, name, count }], recentItems: [até 6 publicações], lastRun, schedulerEnabled, nextRunAt }` |
 
 **Filtros de `/publications`:**
@@ -150,7 +157,30 @@ Fonte que entra no catálogo depois vem ativada. As escolhas do usuário para as
 
 **Gravação:** publicações, situação das fontes e o resultado da execução são gravados numa única transação. São mantidas as 200 execuções mais recentes.
 
-## 7. Fora do contrato
+## 7. Calendário: `/api/reforma`
+
+Módulo de uso pessoal. Toda rota, exceto `/access`, responde `403 { "error": "Acesso restrito ao usuário do módulo Calendário" }` para quem não está em `REFORMA_USERS` (sem a variável: todos em desenvolvimento, ninguém em produção).
+
+| Rota | Resposta |
+|---|---|
+| `GET /access` | `{ allowed }` (a tela esconde o item do menu quando `false`) |
+| `GET /status` | `{ running, lastRun, schedulerEnabled, runTime, nextRunAt, totals: { documents, versions, newThisMonth, changedThisMonth, pendingAnalysis, pendingFiles }, kinds: { id: nome }, sources: [{ id, name, url, method, note, documents, last }] }` |
+| `GET /runs` | Últimas 30 sincronizações: `[{ id, trigger, requestedBy, startedAt, finishedAt, status, newDocuments, newVersions, filesDownloaded, error }]` |
+| `GET /runs/:id` | Uma sincronização com `sources: [{ sourceId, checkedAt, status, fetched, newDocuments, newVersions, error, durationMs }]` |
+| `POST /runs` | `202 { started: true }`; `409` se já há uma em andamento; `429` se a última manual terminou há menos de 2 minutos |
+| `GET /documents` | `{ total, items: [documento] }`; filtros `source`, `kind`, `q`, `changed=versions`; `limit` (até 100) e `offset` |
+| `GET /documents/:id` | Documento com `versions: [{ id, label, title, summary, publishedAt, detectedAt, fileUrl, fileStatus, fileError, analysisStatus, textLength }]`, da mais nova para a mais antiga |
+| `GET /documents/:id/versions/:vid` | `{ text }`: texto completo da versão |
+| `GET /events` | Eventos ativos do calendário entre `from` e `to` (`aaaa-mm-dd`, até 13 meses); filtros `kind`, `importance` (lista separada por vírgula), `subject` (ids de assunto separados por vírgula, os mesmos do módulo Publicações), `officialOnly=true` (sem as datas que o próprio ato chama de previstas) |
+| `GET /events/:id` | Um evento com `history: [{ changedAt, change: "criado" \| "atualizado" \| "substituido", versionId, before }]` |
+
+**Evento:** `{ id, documentId, versionId, kind, date, title, quote, dateStatus: "confirmada" | "previsao", dateNote, legalStatus, importance: "critico" | "alto" | "medio" | "informativo", importanceReason, dateReason, subjects, origin: "regra" | "ia" | "manual", status, createdAt, updatedAt, document: { title, kind, sourceId, url, versionLabel, summary }, alsoIn: [{ eventId, documentId, title, sourceId, url }] }`. `summary`: a ementa do ato (o que a legislação ou a alteração faz), quando há. `subjects`: assuntos do evento, pelas mesmas palavras-chave do módulo Publicações, pelo assunto da própria fonte (ex.: Protocolos ICMS → ICMS) e pela publicação de origem; IBS/CBS e Imposto Seletivo contam também como `reforma-tributaria`. `importanceReason` e `dateReason` explicam, em uma frase, por que o evento recebeu aquela importância e aquele status de data. Linhas de tabela viram um evento cada, com o assunto da linha no `title` e a linha inteira em `quote`. O mesmo ato vindo de duas fontes (ou o mesmo trecho no mesmo dia) aparece uma vez, com as demais em `alsoIn`. `kind`: `obrigatoriedade` (inclui a entrada em produção de uma Nota Técnica), `prazo` (inclui prazos de opção), `vigencia` (início de vigência de um ato) e `alteracao` (vigência de um ato que altera outro). Toda data vem com `quote`, o trecho literal do ato oficial. Notícias, comunicados e projetos de lei não geram datas; datas de publicação e de ambiente de homologação não entram. Atos individuais de unidades regionais da Receita também não. Uma nova versão do documento refaz seus eventos: os que deixam de aparecer ficam `substituido` (com histórico), nunca apagados. `/status` traz também `events: { total, upcoming, pendingExtraction }`, `eventKinds` e `subjects: [{ id, name }]`.
+
+**Documento:** `{ id, sourceId, externalId, kind, title, url, publishedAt, sourceStatus, versionCount, firstSeenAt, updatedAt, lastCheckedAt, currentVersion: { id, label, summary, fileStatus, analysisStatus, hasText } }`. `kind`: `nota-tecnica`, `resolucao`, `protocolo`, `norma`, `proposta`, `comunicado`, `aviso`, `noticia`, `pagina`. `fileStatus`: `none`, `pending`, `ok`, `error`, `skipped` (publicado antes de 2025, não baixado).
+
+**Versões:** cada mudança no que a fonte mostra (título, resumo, rótulo de versão, arquivo, texto da página) é uma nova versão; as anteriores nunca são alteradas. O texto lido depois (página do item, PDF) completa a versão sem criar outra.
+
+## 8. Fora do contrato
 
 - **Arquivos da tela:** o build do React é servido pelo Nginx em produção (`deploy/nginx.conf`) e pelo `run.py` em desenvolvimento.
 - **Detalhes internos:** coletores, classificador, agendamento, backup e o esquema do banco têm testes próprios em pytest (`backend/tests/`). As regras do frontend têm testes em Vitest (`frontend/src/**/*.test.ts`).

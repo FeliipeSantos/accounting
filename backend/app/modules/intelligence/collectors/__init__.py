@@ -27,7 +27,7 @@ def encode_uri_component(value) -> str:
 
 
 def registry() -> dict[str, Callable[[CollectContext], list[dict]]]:
-    from app.modules.intelligence.collectors import camara, confaz, dou, esocial, govbr_news, legislacao, simples, sped
+    from app.modules.intelligence.collectors import camara, cff, cgibs, confaz, dou, esocial, govbr_news, legislacao, nfe, simples, sped
 
     return {
         "dou": dou.collect,
@@ -35,6 +35,9 @@ def registry() -> dict[str, Callable[[CollectContext], list[dict]]]:
         "fazenda": govbr_news.fazenda,
         "simples": simples.collect,
         "confaz": confaz.collect,
+        "nfe": nfe.collect,
+        "cgibs": cgibs.collect,
+        "cff": cff.collect,
         "sped": sped.collect,
         "esocial": esocial.collect,
         "legislacao": legislacao.collect,

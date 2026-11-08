@@ -1,4 +1,4 @@
-"""Inteligência Contábil tables (prefix intel_)."""
+"""Publicações tables (prefix intel_)."""
 
 from sqlalchemy import ForeignKey, Index, Integer, Text, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -97,3 +97,20 @@ class Favorite(db.Model):
     username: Mapped[str] = mapped_column(Text, ForeignKey("core_users.username", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     publication_id: Mapped[str] = mapped_column(Text, ForeignKey("intel_publications.id", ondelete="CASCADE"), primary_key=True)
     created_at: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class PublicationText(db.Model):
+    """Full official text of a publication, fetched after collection (DOU page of the act).
+
+    status: "ok" (text stored), "unavailable" (the source has no full text the module
+    can read) or "error" (fetch failed; retried by `flask intel fulltext`).
+    """
+
+    __tablename__ = "intel_publication_texts"
+
+    publication_id: Mapped[str] = mapped_column(Text, ForeignKey("intel_publications.id", ondelete="CASCADE"), primary_key=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    full_text: Mapped[str | None] = mapped_column(Text)
+    text_url: Mapped[str | None] = mapped_column(Text)
+    error: Mapped[str | None] = mapped_column(Text)
+    fetched_at: Mapped[str] = mapped_column(Text, nullable=False)

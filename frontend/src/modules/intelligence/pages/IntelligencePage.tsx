@@ -13,7 +13,7 @@ import { IntelligenceContext, type IntelligenceContextValue } from '@/modules/in
 import { nextRunText, RUN_TONE, runOutcomeText, updatedAtText } from '@/modules/intelligence/format';
 import { useRunStatus } from '@/modules/intelligence/hooks/useRunStatus';
 import { DEFAULT_LOCATION, rememberLocation } from '@/modules/intelligence/lastLocation';
-import { INTELLIGENCE_TABS, type IntelligenceTab } from '@/modules/intelligence/paths';
+import { INTELLIGENCE_TABS, type IntelligenceTab, tabPath } from '@/modules/intelligence/paths';
 import { isOpenPublicationState } from '@/modules/intelligence/search';
 import type { Publication, RunState, Source, Subject } from '@/modules/intelligence/types';
 import { DashboardView } from '@/modules/intelligence/views/DashboardView';
@@ -67,7 +67,7 @@ const TabCount = styled.span`
 
 const VIEWS: Record<IntelligenceTab, () => ReactNode> = {
   painel: () => <DashboardView />,
-  publicacoes: () => <PublicationsView />,
+  lista: () => <PublicationsView />,
   categorias: () => <CategoriesView />,
   favoritos: () => <FavoritesView />,
   historico: () => <HistoryView />,
@@ -92,7 +92,7 @@ function LastCollection({ state, running }: { state: RunState | null; running: b
   const detail = [run && !running ? runOutcomeText(run) : null, state ? nextRunText(state) : null].filter(Boolean).join(' · ');
   return (
     <Tooltip title={detail || undefined}>
-      <CollectionStatus type="button" $tone={tone} onClick={() => navigate('/inteligencia/historico')}>
+      <CollectionStatus type="button" $tone={tone} onClick={() => navigate(tabPath('historico'))}>
         {updatedAtText(run, running)}
       </CollectionStatus>
     </Tooltip>
@@ -150,7 +150,7 @@ function ModuleContent({ tab, catalog, reloadCatalog }: { tab: IntelligenceTab; 
   return (
     <IntelligenceContext.Provider value={context}>
       <Page
-        title="Inteligência Contábil"
+        title="Publicações"
         description="Atualizações fiscais, tributárias e trabalhistas das fontes oficiais."
         icon={<ReadOutlined />}
         actions={
@@ -166,11 +166,11 @@ function ModuleContent({ tab, catalog, reloadCatalog }: { tab: IntelligenceTab; 
         <div>
           <Tabs
             activeKey={tab}
-            onChange={(key) => navigate(`/inteligencia/${key}`)}
+            onChange={(key) => navigate(tabPath(key as IntelligenceTab))}
             items={INTELLIGENCE_TABS.map(({ key, label }) => ({
               key,
               label:
-                key === 'publicacoes' && publicationCount > 0 ? (
+                key === 'lista' && publicationCount > 0 ? (
                   <>
                     {label}
                     <TabCount>{publicationCount}</TabCount>

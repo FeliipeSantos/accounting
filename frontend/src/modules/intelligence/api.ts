@@ -1,5 +1,16 @@
 import { apiRequest } from '@/core/api/client';
-import type { Publication, PublicationFilters, PublicationPage, Run, RunState, Settings, Source, Subject, Summary } from '@/modules/intelligence/types';
+import type {
+  Publication,
+  PublicationDetailData,
+  PublicationFilters,
+  PublicationPage,
+  Run,
+  RunState,
+  Settings,
+  Source,
+  Subject,
+  Summary,
+} from '@/modules/intelligence/types';
 
 const BASE = '/api/intelligence';
 
@@ -16,6 +27,9 @@ export const intelligenceApi = {
   summary: () => apiRequest<Summary>(`${BASE}/summary`),
   publications: (filters: Partial<PublicationFilters>, offset = 0) =>
     apiRequest<PublicationPage>(`${BASE}/publications?${query(filters, { limit: PAGE_SIZE, offset })}`),
+  /** One publication with its full text and key points (only this route sends them). */
+  publication: (id: string, signal?: AbortSignal) =>
+    apiRequest<PublicationDetailData>(`${BASE}/publications/${encodeURIComponent(id)}`, { signal }),
   sources: () => apiRequest<Source[]>(`${BASE}/sources`),
   subjects: () => apiRequest<Subject[]>(`${BASE}/subjects`),
   rules: () => apiRequest<string[]>(`${BASE}/rules`),

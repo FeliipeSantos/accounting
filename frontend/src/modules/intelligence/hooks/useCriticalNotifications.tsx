@@ -14,7 +14,7 @@ function toGroup(critical: Publication[], total: number): NotificationGroup {
   const groups = groupSameAct(critical);
   return {
     key: 'intelligence-critical',
-    label: 'Inteligência Contábil',
+    label: 'Publicações',
     total,
     seeAllPath: publicationsPath({ relevance: 'critica' }),
     items: groups.slice(0, MAX_ITEMS).map(({ primary, others }) => ({

@@ -1,0 +1,12 @@
+# Verifica a cada 5 minutos se a sincronização diária do Calendário está na hora — copie para /etc/systemd/system/
+
+[Unit]
+Description=Project Accounting — verificação da sincronização do Calendário
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=project-accounting-reforma.service
+
+[Install]
+WantedBy=timers.target

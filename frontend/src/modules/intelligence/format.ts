@@ -1,4 +1,4 @@
-/** Labels and formatting of the Inteligência Contábil screens (same texts as before). */
+/** Labels and formatting of the Publicações screens (same texts as before). */
 import type { Publication, Relevance, Run, RunStatus, ScheduleInfo } from '@/modules/intelligence/types';
 import type { IconTone, Tone } from '@/theme';
 

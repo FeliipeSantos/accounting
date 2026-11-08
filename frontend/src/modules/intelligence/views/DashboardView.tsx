@@ -21,7 +21,7 @@ import { BarList } from '@/modules/intelligence/components/BarList';
 import { PublicationList } from '@/modules/intelligence/components/PublicationCard';
 import { useIntelligence } from '@/modules/intelligence/context';
 import { formatDateTime, groupSameAct, localDaysAgo, REFORM_GROUP, REFORM_SUBJECTS, RUN_STATUS, RUN_TONE } from '@/modules/intelligence/format';
-import { publicationsPath } from '@/modules/intelligence/paths';
+import { publicationsPath, tabPath } from '@/modules/intelligence/paths';
 import type { Publication, Run, RunStatus, Summary } from '@/modules/intelligence/types';
 import { fontSize, type Tone, tones } from '@/theme';
 
@@ -149,7 +149,7 @@ function DashboardContent({ summary: data, critical, onChange }: { summary: Summ
           small
           hint={<RunHint run={lastRun} />}
           ariaLabel="Ver o histórico de execuções"
-          onClick={() => navigate('/inteligencia/historico')}
+          onClick={() => navigate(tabPath('historico'))}
         />
       </StatGrid>
 
@@ -167,7 +167,7 @@ function DashboardContent({ summary: data, critical, onChange }: { summary: Summ
         <SectionCard
           title="Atualizações por Categoria"
           extra={
-            <CardLink type="link" onClick={() => navigate('/inteligencia/categorias')}>
+            <CardLink type="link" onClick={() => navigate(tabPath('categorias'))}>
               Ver detalhes →
             </CardLink>
           }

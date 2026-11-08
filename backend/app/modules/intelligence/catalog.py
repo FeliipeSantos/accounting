@@ -1,4 +1,4 @@
-"""Static catalog of monitored sources and subjects of the Inteligência Contábil module.
+"""Static catalog of monitored sources and subjects of the Publicações module.
 
 Feasibility was verified with real requests on 2026-11-06. No source blocks automated
 access in the current catalog; nothing is bypassed.
@@ -48,9 +48,43 @@ SOURCES: list[dict] = [
         "method": "html",
         "collectable": True,
         "coverage": (
-            "Convênios ICMS via página oficial. Ajustes SINIEF exigem login no site e vêm do DOU, onde são obrigatoriamente publicados."
+            "Convênios e Protocolos ICMS (estes, quase todos de substituição tributária) via página oficial. "
+            "Ajustes SINIEF exigem login no site e vêm do DOU, onde são obrigatoriamente publicados."
         ),
         "defaultSubjects": ["icms"],
+    },
+    {
+        "id": "nfe",
+        "name": "Portal da NF-e",
+        "url": "https://www.nfe.fazenda.gov.br/portal/listaConteudo.aspx?tipoConteudo=04BIflQt1aY=",
+        "method": "html",
+        "collectable": True,
+        "coverage": (
+            "Notas Técnicas (cada versão nova é uma publicação) e avisos via páginas oficiais (sem API ou feed). "
+            "O PDF da Nota Técnica abre pelo link da publicação."
+        ),
+        "defaultSubjects": ["documentos-fiscais"],
+    },
+    {
+        "id": "cgibs",
+        "name": "Comitê Gestor do IBS",
+        "url": "https://www.cgibs.gov.br",
+        "method": "html",
+        "collectable": True,
+        "coverage": (
+            "Resoluções (página oficial, com o PDF), Comunicados Oficiais e Notícias (serviço de listas do próprio site, "
+            "o mesmo que a página usa; sem API ou feed)."
+        ),
+        "defaultSubjects": ["ibs-cbs"],
+    },
+    {
+        "id": "cff",
+        "name": "Conformidade Fácil (SVRS)",
+        "url": "https://dfe-portal.svrs.rs.gov.br/CFF/Noticias",
+        "method": "html",
+        "collectable": True,
+        "coverage": "Avisos de implantação das regras e Notas Técnicas dos documentos fiscais, via página oficial (sem API ou feed).",
+        "defaultSubjects": ["documentos-fiscais"],
     },
     {
         "id": "sped",

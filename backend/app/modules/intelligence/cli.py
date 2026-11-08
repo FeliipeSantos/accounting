@@ -1,9 +1,10 @@
-"""Terminal commands of the Inteligência Contábil module.
+"""Terminal commands of the Publicações module.
 
 flask intel run         -> runs one monitoring cycle now
 flask intel scheduled   -> runs the daily cycle if it is due (called by the systemd timer)
 flask intel reclassify  -> re-applies the classification rules to stored publications
 flask intel check       -> tests access to every source without storing anything
+flask intel fulltext    -> fetches the full text of stored publications that lack it
 """
 
 import time
@@ -13,12 +14,12 @@ from datetime import datetime
 import click
 from flask.cli import AppGroup
 
-from app.modules.intelligence import http_client, monitor, repository, scheduler
+from app.modules.intelligence import fulltext, http_client, monitor, repository, scheduler
 from app.modules.intelligence.catalog import SOURCES
 from app.modules.intelligence.collectors import CollectContext, registry
 from app.modules.intelligence.text import add_days, local_iso_date
 
-intel_group = AppGroup("intel", help="Inteligência Contábil: coletas e classificação.")
+intel_group = AppGroup("intel", help="Publicações: coletas e classificação.")
 _NAMES = {s["id"]: s["name"] for s in SOURCES}
 
 
@@ -99,3 +100,15 @@ def check_command() -> None:
     click.echo(f"\n{len(results) - failed} de {len(results)} fontes acessíveis.")
     if failed:
         raise SystemExit(1)
+
+
+@intel_group.command("fulltext", help="Busca o texto completo das publicações guardadas que ainda não o têm (e refaz as que falharam).")
+@click.option("--all", "refetch_all", is_flag=True, help="Busca de novo o texto de todas as publicações.")
+def fulltext_command(refetch_all: bool) -> None:
+    pending = repository.publications_without_text(fulltext.SUPPORTED_SOURCES, refetch_all=refetch_all)
+    if not pending:
+        click.echo("Nenhuma publicação sem texto completo.")
+        return
+    click.echo(f"Buscando o texto completo de {len(pending)} publicação(ões)...")
+    counts = fulltext.fetch_and_store(pending)
+    click.echo(f"Lidos: {counts['ok']} | sem texto na fonte: {counts['unavailable']} | com falha: {counts['error']}")

@@ -1,7 +1,9 @@
+import { PUBLICATIONS_BASE, tabPath } from '@/modules/intelligence/paths';
+
 /** Last visited address inside the module, so the side menu returns to the same tab and filters. */
 const STORAGE_KEY = 'intelligence:lastLocation';
-const BASE = '/inteligencia/';
-export const DEFAULT_LOCATION = '/inteligencia/painel';
+const BASE = `${PUBLICATIONS_BASE}/`;
+export const DEFAULT_LOCATION = tabPath('painel');
 
 export function rememberLocation(pathname: string, search: string): void {
   if (!pathname.startsWith(BASE)) return;

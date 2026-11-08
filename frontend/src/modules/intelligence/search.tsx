@@ -15,7 +15,7 @@ export function isOpenPublicationState(state: unknown): state is OpenPublication
   return typeof state === 'object' && state !== null && 'openPublication' in state;
 }
 
-/** Global search inside Inteligência Contábil: same text search as the publication list. */
+/** Global search inside Publicações: same text search as the publication list. */
 export const intelligenceSearch: ModuleSearch = {
   placeholder: 'Buscar publicações...',
   noun: 'publicações',

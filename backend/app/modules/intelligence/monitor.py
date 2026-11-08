@@ -14,7 +14,7 @@ from flask import Flask, current_app
 
 from app.core.database import utc_now_iso
 from app.extensions import db
-from app.modules.intelligence import http_client, repository
+from app.modules.intelligence import fulltext, http_client, repository
 from app.modules.intelligence.catalog import SOURCES
 from app.modules.intelligence.classifier import classify
 from app.modules.intelligence.collectors import CollectContext, registry
@@ -165,7 +165,7 @@ def _collect_source(source: dict, ctx: _RunContext) -> tuple[dict, list[dict]]:
     return result, fresh
 
 
-def _collect_and_store(run_id: str, collectors, fetch_text, fetch_json, now: datetime | None) -> dict:
+def _collect_and_store(run_id: str, collectors, fetch_text, fetch_json, now: datetime | None, full_texts: bool) -> dict:
     settings = repository.get_settings()
     known_keys, known_hashes = repository.known_publication_keys()
     ctx = _RunContext(
@@ -213,6 +213,18 @@ def _collect_and_store(run_id: str, collectors, fetch_text, fetch_json, now: dat
     for r in results:
         if r["status"] == "error":
             logger.warning("[intelligence] fonte %s falhou: %s", r["sourceId"], r["error"])
+
+    if full_texts:
+        # texto completo das novas publicações e das que ainda não o têm (falhas anteriores),
+        # depois de gravadas: uma falha aqui não afeta a coleta
+        pending = repository.publications_without_text(fulltext.SUPPORTED_SOURCES)[: fulltext.MAX_TEXTS_PER_RUN]
+        if pending:
+            try:
+                counts = fulltext.fetch_and_store(pending, fetch_text)
+                logger.info("[intelligence] textos completos: %s lido(s), %s com falha", counts["ok"], counts["error"])
+            except Exception as err:  # noqa: BLE001
+                db.session.rollback()
+                logger.warning("[intelligence] falha ao buscar os textos completos: %s", err)
     return run
 
 
@@ -223,9 +235,16 @@ def run_monitoring(
     fetch_text: Callable | None = None,
     fetch_json: Callable | None = None,
     now: datetime | None = None,
+    full_texts: bool | None = None,
 ) -> dict:
     """Runs one monitoring cycle (inside an app context). Only one at a time, also
-    across processes. Returns the finished run record."""
+    across processes. Returns the finished run record.
+
+    full_texts: also fetch the full text of the new publications; by default only in
+    real runs (no stub collectors), so tests never reach the network.
+    """
+    if full_texts is None:
+        full_texts = collectors is None
     global _current_run, _last_run_ms
     with _state_lock:
         if _current_run is not None:
@@ -239,7 +258,7 @@ def run_monitoring(
         if not repository.start_run(run_id, trigger, requested_by, utc_now_iso()):
             raise MonitorBusyError("Já existe uma execução do monitoramento em andamento")
         try:
-            return _collect_and_store(run_id, collectors, fetch_text, fetch_json, now)
+            return _collect_and_store(run_id, collectors, fetch_text, fetch_json, now, full_texts)
         except Exception as err:
             # erro inesperado: a execução não fica "em andamento" por 15 minutos
             repository.fail_run(run_id, clean_text(str(err), 300) or "Erro inesperado")

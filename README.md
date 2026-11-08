@@ -1,8 +1,9 @@
 # Project Accounting
 
-Sistema interno com dois módulos:
+Sistema interno com três módulos. No menu lateral, Publicações e Calendário ficam dentro do grupo **Inteligência Contábil**:
 - **Portal de Projetos:** status report dos projetos, com atividades, subatividades, pontos de atenção e kanban, e impressão em A4.
-- **Inteligência Contábil:** coleta diária de atualizações fiscais, tributárias e trabalhistas em 9 fontes oficiais, classificadas por regras.
+- **Publicações:** coleta diária de atualizações fiscais, tributárias e trabalhistas em 12 fontes oficiais (inclusive Convênios e Protocolos ICMS do CONFAZ, Notas Técnicas e avisos do Portal da NF-e, resoluções, comunicados e notícias do Comitê Gestor do IBS e avisos da Conformidade Fácil), classificadas por regras.
+- **Calendário** (uso pessoal, `REFORMA_USERS`): mostra as obrigatoriedades, os prazos e o início de vigência de legislações e de alterações (ex.: início da emissão de NFS-e na locação, prazo de opção pelo Simples Nacional, exclusão de produtos da substituição tributária), de qualquer assunto. Lê tudo o que o módulo Publicações coleta (inclusive os Protocolos ICMS), e lê direto das fontes o que precisa de versões e PDFs (Notas Técnicas da NF-e, resoluções do Comitê Gestor do IBS, Conformidade Fácil), além da seção da Reforma e das notícias antigas da Receita, das páginas da Fazenda e da NFS-e, guarda o histórico de versões e os PDFs oficiais. As datas vêm por regras e só de atos oficiais, sempre com o trecho do ato; notícias e comunicados não geram datas, servem para achar no DOU o ato que citam. A análise por IA (impacto, quem é afetado, providência) é a próxima etapa.
 
 | Pasta | Conteúdo |
 |---|---|

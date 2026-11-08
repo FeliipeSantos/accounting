@@ -1,4 +1,4 @@
-"""HTTP routes of the Inteligência Contábil module, mounted at /api/intelligence.
+"""HTTP routes of the Publicações module, mounted at /api/intelligence.
 
 The session (g.user) and the JSON content type are checked before these routes
 (app.core.http).
@@ -13,9 +13,10 @@ from flask import Blueprint, current_app, g, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from app.core.http import json_error, json_response
-from app.modules.intelligence import monitor, repository, scheduler
+from app.modules.intelligence import fulltext, monitor, repository, scheduler
 from app.modules.intelligence.catalog import RELEVANCE_LEVELS, SOURCE_IDS, SOURCES, SUBJECT_IDS, SUBJECTS, collectable_ids
 from app.modules.intelligence.classifier import RULES_DESCRIPTION
+from app.modules.intelligence.keypoints import extract_key_points
 
 MAX_BODY_BYTES = 100 * 1024
 USER_PATTERN = re.compile(r"[\w.@-]{1,64}", re.ASCII)
@@ -164,6 +165,15 @@ def publication(publication_id: str):
     pub = repository.get_publication(publication_id, g.user)
     if pub is None:
         return json_error(404, "Publicação não encontrada")
+    # só no detalhe: o texto completo e os pontos principais extraídos dele
+    stored = repository.get_publication_text(publication_id)
+    if stored is None:
+        # notícias, projetos de lei e portais nunca têm texto completo: não ficam "pendentes"
+        pub["fullText"] = {"status": "pending" if fulltext.has_full_text(pub["sourceId"]) else "unavailable"}
+    elif stored["status"] == "ok":
+        pub["fullText"] = {"status": "ok", "url": stored["url"], "text": stored["text"], **extract_key_points(stored["text"])}
+    else:
+        pub["fullText"] = {"status": stored["status"]}
     return json_response(pub)
 
 

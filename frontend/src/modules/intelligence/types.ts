@@ -34,6 +34,37 @@ export interface Publication {
   favoritedAt?: string;
 }
 
+/** A provision of the act that states a concrete value (amount, percentage, deadline, date). */
+export interface KeyPoint {
+  /** Where it is: "Art. 1º · nova redação do art. 18-A, § 1º da LC 123/2006". */
+  ref: string;
+  /** The act's own wording, shortened. */
+  text: string;
+  /** Values found in the text, shown in bold. */
+  highlights: string[];
+}
+
+/** Full official text of the act, read after collection (GET /publications/:id only). */
+export type FullText =
+  | {
+      status: 'ok';
+      url: string | null;
+      text: string;
+      points: KeyPoint[];
+      /**
+       * What the points are: provisions with values (amounts, percentages, deadlines, dates),
+       * the act's main provisions when it states no values, or the "Rótulo: valor" fields of
+       * texts without articles (e.g. Soluções de Consulta).
+       */
+      basis: 'values' | 'provisions' | 'fields' | null;
+      effective: { ref: string; text: string; items: string[] } | null;
+    }
+  | { status: 'pending' | 'unavailable' | 'error' };
+
+export interface PublicationDetailData extends Publication {
+  fullText: FullText;
+}
+
 export interface PublicationPage {
   total: number;
   items: Publication[];

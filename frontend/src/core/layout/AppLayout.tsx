@@ -1,12 +1,14 @@
 import { Layout, Menu } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { GlobalHeader } from '@/core/layout/GlobalHeader';
 import { LayoutContext } from '@/core/layout/layoutContext';
+import { buildMenuItems } from '@/core/layout/menuItems';
+import { useVisibleModules } from '@/core/layout/useVisibleModules';
 import { APP_VERSION, BrandMark, BRAND_NAME } from '@/core/ui';
-import { MODULES } from '@/modules';
+import { MODULE_GROUPS, MODULES } from '@/modules';
 import { palette } from '@/theme';
 
 const COLLAPSED_KEY = 'side_nav_collapsed';
@@ -47,10 +49,26 @@ const Sider = styled(Layout.Sider)`
     background: transparent;
   }
 
-  .ant-menu-dark .ant-menu-item {
+  .ant-menu-dark .ant-menu-item,
+  .ant-menu-dark .ant-menu-submenu-title {
     font-weight: 500;
     margin-inline: 12px;
     width: calc(100% - 24px);
+  }
+
+  /* itens dentro de um grupo: o recuo mostra que pertencem a ele */
+  .ant-menu-dark.ant-menu-inline .ant-menu-sub.ant-menu-inline {
+    background: transparent;
+  }
+
+  .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+    color: #fff;
+  }
+
+  /* recolhido, o grupo do módulo aberto fica destacado como um item selecionado */
+  .ant-menu-dark.ant-menu-inline-collapsed > .menu-group-active > .ant-menu-submenu-title {
+    background: ${palette.blue600};
+    box-shadow: 0 6px 14px -6px rgba(30, 107, 230, 0.7);
   }
 
   .ant-menu-dark .ant-menu-item-selected {
@@ -62,6 +80,27 @@ const Sider = styled(Layout.Sider)`
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  /* recolhido: o antd calcula o recuo com a margem padrão dele, e os ícones saíam do centro */
+  .ant-menu-inline-collapsed > .ant-menu-item,
+  .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0 !important;
+  }
+
+  .ant-menu-inline-collapsed > .ant-menu-item .ant-menu-item-icon,
+  .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-item-icon {
+    margin: 0;
+    line-height: 1;
+  }
+
+  .ant-menu-inline-collapsed > .ant-menu-item .ant-menu-title-content,
+  .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-title-content,
+  .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title .ant-menu-submenu-arrow {
+    display: none;
   }
 `;
 
@@ -127,7 +166,23 @@ export function AppLayout() {
   const [narrow, setNarrow] = useState(false);
   const collapsed = narrow || preferCollapsed;
 
-  const activeModule = MODULES.find((m) => location.pathname.startsWith(m.path))?.key;
+  const visibleModules = useVisibleModules();
+  const active = MODULES.find((m) => location.pathname.startsWith(m.path));
+  const activeModule = active?.key;
+  // o grupo do módulo aberto é marcado aqui: recolhido, o antd não monta os filhos e não sabe qual está ativo
+  const menuItems = useMemo(
+    () =>
+      buildMenuItems(visibleModules, MODULE_GROUPS).map((entry) =>
+        'children' in entry && entry.children.some((c) => c.key === activeModule) ? { ...entry, className: 'menu-group-active' } : entry,
+      ),
+    [visibleModules, activeModule],
+  );
+
+  // o grupo do módulo aberto começa aberto; os demais abrem e fecham com um clique
+  const [openGroups, setOpenGroups] = useState<string[]>(() => (active?.group ? [active.group] : []));
+  useEffect(() => {
+    if (active?.group) setOpenGroups((current) => (current.includes(active.group as string) ? current : [...current, active.group as string]));
+  }, [active?.group]);
 
   const layout = useMemo(
     () => ({
@@ -145,7 +200,7 @@ export function AppLayout() {
   return (
     <LayoutContext.Provider value={layout}>
       <Shell hasSider>
-        <Sider collapsible collapsed={collapsed} breakpoint="md" onBreakpoint={setNarrow} collapsedWidth={COLLAPSED_WIDTH} trigger={null} width={240} data-print-hide>
+        <Sider collapsible collapsed={collapsed} breakpoint="md" onBreakpoint={setNarrow} collapsedWidth={COLLAPSED_WIDTH} trigger={null} width={256} data-print-hide>
           <SiderContent>
             <Brand $collapsed={collapsed}>
               <BrandMark />
@@ -156,7 +211,9 @@ export function AppLayout() {
               theme="dark"
               mode="inline"
               selectedKeys={activeModule ? [activeModule] : []}
-              items={MODULES.map(({ key, icon, label }) => ({ key, icon, label, title: label }))}
+              // recolhido, o antd mostra o grupo como menu flutuante: só controla os abertos no menu aberto
+              {...(collapsed ? {} : { openKeys: openGroups, onOpenChange: setOpenGroups })}
+              items={menuItems}
               onClick={({ key }) => navigate(MODULES.find((m) => m.key === key)?.path ?? '/')}
             />
             {/* sair da conta fica no menu do perfil, no cabeçalho global */}

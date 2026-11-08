@@ -1,4 +1,4 @@
-"""Data access of the Inteligência Contábil module (tables intel_*).
+"""Data access of the Publicações module (tables intel_*).
 
 JSON columns are written with dumps_js, the same text format already stored. Functions do not commit unless stated: callers group
 writes in one transaction.
@@ -405,6 +405,61 @@ def get_publication(publication_id: str, user: str | None = None) -> dict | None
         id=publication_id,
     )
     return _row_to_publication(row) if row else None
+
+
+def save_publication_text(
+    publication_id: str, status: str, full_text: str | None, text_url: str | None, error: str | None, fetched_at: str
+) -> None:
+    """Stores (or replaces) the full-text fetch result of a publication (no commit)."""
+    db.session.execute(
+        text(
+            "INSERT INTO intel_publication_texts (publication_id, status, full_text, text_url, error, fetched_at) "
+            "VALUES (:id, :status, :full_text, :text_url, :error, :fetched_at) "
+            "ON CONFLICT (publication_id) DO UPDATE SET status = excluded.status, full_text = excluded.full_text, "
+            "text_url = excluded.text_url, error = excluded.error, fetched_at = excluded.fetched_at"
+        ),
+        {
+            "id": publication_id,
+            "status": status,
+            "full_text": full_text,
+            "text_url": text_url,
+            "error": error,
+            "fetched_at": fetched_at,
+        },
+    )
+
+
+def get_publication_text(publication_id: str) -> dict | None:
+    row = _row("SELECT * FROM intel_publication_texts WHERE publication_id = :id", id=publication_id)
+    if row is None:
+        return None
+    return {
+        "status": row["status"],
+        "text": row["full_text"],
+        "url": row["text_url"],
+        "error": row["error"],
+        "fetchedAt": row["fetched_at"],
+    }
+
+
+def publications_without_text(source_ids: set[str], retry_errors: bool = True, refetch_all: bool = False) -> list[dict]:
+    """Publications of the given sources whose full text is missing (or failed, when retrying)."""
+    if not source_ids:
+        return []
+    names = {f"s{i}": source for i, source in enumerate(sorted(source_ids))}
+    placeholders = ", ".join(f":{name}" for name in names)
+    if refetch_all:
+        condition = "1 = 1"
+    elif retry_errors:
+        condition = "(t.publication_id IS NULL OR t.status = 'error')"
+    else:
+        condition = "t.publication_id IS NULL"
+    rows = _rows(
+        f"SELECT p.* FROM intel_publications p LEFT JOIN intel_publication_texts t ON t.publication_id = p.id "
+        f"WHERE p.source_id IN ({placeholders}) AND {condition} ORDER BY {ORDER_BY}",
+        **names,
+    )
+    return [_row_to_publication(r) for r in rows]
 
 
 def count_by_subject() -> dict[str, int]:

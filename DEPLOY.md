@@ -1,15 +1,15 @@
 # Deploy em VPS
 
-Guia para publicar o Project Accounting (Portal de Projetos + Inteligência Contábil) numa VPS Linux (Ubuntu 24.04 ou Debian 12) com Nginx e HTTPS.
+Guia para publicar o Project Accounting (Portal de Projetos + Publicações) numa VPS Linux (Ubuntu 24.04 ou Debian 12) com Nginx e HTTPS.
 
 **Arquitetura:**
 - **Entrada:** internet → Nginx (HTTPS, porta 443).
 - **Tela:** o Nginx entrega o build do React (`frontend/dist`).
 - **API:** o Nginx repassa `/api` ao gunicorn em `127.0.0.1:8080`, que roda o backend Flask (`backend/`, serviço do systemd).
 - **Banco:** SQLite em `/var/lib/project-accounting/app.db`.
-- **Tarefas diárias:** a coleta da Inteligência Contábil e o backup do banco rodam por timers do systemd.
+- **Tarefas diárias:** a coleta do módulo Publicações e o backup do banco rodam por timers do systemd.
 
-Todos os dados (usuários, sessões, projetos e Inteligência Contábil) ficam **no banco único**. O `.env` guarda só a infraestrutura (porta, fuso, caminho do banco).
+Todos os dados (usuários, sessões, projetos e Publicações) ficam **no banco único**. O `.env` guarda só a infraestrutura (porta, fuso, caminho do banco).
 
 > Escolha uma **VPS no Brasil**: alguns sites oficiais podem recusar acessos de fora do país ou de datacenters. O passo 8 confirma isso.
 
@@ -117,7 +117,7 @@ sudo -u project-accounting .venv/bin/flask user list
 
 As tabelas são criadas pelas migrations do Alembic, que a equipe gera e aplica manualmente. O servidor nunca as aplica sozinho.
 
-- **Pré-requisito:** a migration inicial (baseline) precisa existir no repositório, em `backend/migrations/`. Veja como gerá-la no `backend/README.md`.
+- **Migrations:** ficam em `backend/migrations/` (a baseline e as seguintes).
 - **Comandos:**
 
 ```bash
@@ -132,17 +132,19 @@ sudo -u project-accounting .venv/bin/flask user add seu.usuario
 cd /opt/project-accounting/deploy
 sudo cp project-accounting-api.service \
         project-accounting-intel.service project-accounting-intel.timer \
+        project-accounting-reforma.service project-accounting-reforma.timer \
         project-accounting-backup.service project-accounting-backup.timer \
         /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now project-accounting-api
-sudo systemctl enable --now project-accounting-intel.timer project-accounting-backup.timer
+sudo systemctl enable --now project-accounting-intel.timer project-accounting-reforma.timer project-accounting-backup.timer
 ```
 
 | Unidade | Função |
 |---|---|
 | `project-accounting-api` | Backend (gunicorn: 1 processo, 8 threads) |
 | `project-accounting-intel.timer` | A cada 5 min, verifica se a coleta diária está na hora. Recupera coleta perdida e repete falhas até 3 vezes no dia |
+| `project-accounting-reforma.timer` | A cada 5 min, verifica se a sincronização diária do Calendário está na hora (`REFORMA_RUN_TIME`, padrão 07:00). Mesmas regras de recuperação e nova tentativa |
 | `project-accounting-backup.timer` | Cópia do banco às 03:00, ou ao ligar a VPS se ela estava desligada nesse horário |
 
 Verifique:
@@ -211,7 +213,7 @@ cd /opt/project-accounting/backend
 sudo -u project-accounting .venv/bin/flask intel check
 ```
 
-Esperado: `9 de 9 fontes acessíveis`. Se alguma falhar (ex.: bloqueio de IP), ela aparece com o erro; as demais continuam funcionando normalmente.
+Esperado: `12 de 12 fontes acessíveis`. Se alguma falhar (ex.: bloqueio de IP), ela aparece com o erro; as demais continuam funcionando normalmente.
 
 Coleta manual pelo terminal: `sudo -u project-accounting .venv/bin/flask intel run`. Depois do horário configurado (padrão 06:00), confira a coleta automática:
 
@@ -301,7 +303,13 @@ Para uma VPS instalada com a versão anterior (`project-accounting.service` roda
    sudo systemctl enable --now project-accounting-intel.timer project-accounting-backup.timer
    ```
    A coleta diária e o backup, que antes rodavam dentro do Node, passam para os timers.
-7. **Alembic:** quando a baseline existir no repositório, marque-a como aplicada neste banco, que já tem as tabelas: `sudo -u project-accounting .venv/bin/flask db stamp head`.
+7. **Alembic:** marque a baseline como aplicada neste banco, que já tem as tabelas, e aplique as migrations seguintes. Use a revisão da baseline, **não** `head`: `head` marcaria como aplicadas também as migrations novas, sem criar as tabelas delas.
+   ```bash
+   sudo -u project-accounting .venv/bin/flask db stamp a92784c200a9
+   sudo -u project-accounting .venv/bin/flask db upgrade
+   sudo -u project-accounting .venv/bin/flask intel fulltext
+   ```
+   O último comando busca o texto completo das publicações já guardadas (leva alguns minutos; falhas do site do DOU são refeitas na coleta seguinte).
 
 **Voltar para o Node, se algo der errado:**
 

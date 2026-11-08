@@ -4,5 +4,7 @@ Flask-Migrate>=4.0,<5
 python-dotenv>=1.0,<2
 pydantic>=2.9,<3
 httpx>=0.27,<1
+# texto dos PDFs oficiais (notas técnicas, resoluções) no módulo Calendário
+pypdf>=5,<7
 # servidor de produção (Linux)
 gunicorn>=23,<24; sys_platform != "win32"
