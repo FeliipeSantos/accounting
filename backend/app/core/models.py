@@ -27,3 +27,12 @@ class Session(db.Model):
     username: Mapped[str] = mapped_column(Text, ForeignKey("core_users.username", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
     created_at: Mapped[int] = mapped_column(Integer, nullable=False)
     expires_at: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class NotificationState(db.Model):
+    """When the user last opened the notification center: items after it count as new."""
+
+    __tablename__ = "core_notification_state"
+
+    username: Mapped[str] = mapped_column(Text, ForeignKey("core_users.username", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
+    seen_at: Mapped[str] = mapped_column(Text, nullable=False)

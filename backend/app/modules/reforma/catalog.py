@@ -95,9 +95,13 @@ SOURCES: list[dict] = [
         "name": "Prazos recorrentes da legislação",
         "url": "https://www.gov.br/receitafederal",
         "method": (
-            "Regras fixas com base legal (SIMEI, DASN-SIMEI, DEFIS, ECD, ECF, DAS, DCTFWeb, EFD-Reinf); datas calculadas pelo sistema"
+            "22 regras fixas com base legal: Simples Nacional e MEI, SPED, folha (eSocial, FGTS, contribuições, IRRF), "
+            "PIS/Cofins, IPI, IRPJ/CSLL, DME, e-Financeira, DeSTDA e GIA-ST; datas calculadas pelo sistema"
         ),
-        "note": "Cada regra traz o trecho da fonte oficial. Dias úteis consideram fins de semana e feriados nacionais.",
+        "note": (
+            "Cada regra traz o trecho da fonte oficial. Dias úteis consideram fins de semana, feriados nacionais e o Carnaval; "
+            "ICMS e ISS próprios de cada estado e município não entram (variam por estado, município e atividade)."
+        ),
     },
     {
         "id": "paginas",

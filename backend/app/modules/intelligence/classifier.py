@@ -107,8 +107,16 @@ EFFECTIVE_ON_DATE = re.compile(
 )
 
 
-def detect_norm_type(source_id: str, weight: int, text: str, published_at: str | None) -> dict:
+TECHNICAL_DOCUMENT = "Documento técnico"
+# leiautes e regras de validação (Notas Técnicas da NF-e): não são normas; as datas de
+# produção vêm no próprio documento
+_TECHNICAL_ACTS = re.compile(r"^nota tecnica\b")
+
+
+def detect_norm_type(source_id: str, weight: int, text: str, published_at: str | None, act_type: str | None = None) -> dict:
     """Norm type and effective date, only from explicit phrases."""
+    if _TECHNICAL_ACTS.match(normalize_for_match(act_type or "").strip()):
+        return {"normType": TECHNICAL_DOCUMENT, "effectiveDate": None}
     if source_id == "camara":
         return {"normType": "Projeto de lei", "effectiveDate": None}
     if weight == 0:
@@ -149,7 +157,7 @@ def classify(item: dict, enabled_subjects: list[str]) -> dict:
         "relevant": len(subjects) > 0,
         "subjects": subjects,
         "relevance": relevance_from_score(score),
-        **detect_norm_type(item.get("sourceId"), weight, text, item.get("publishedAt")),
+        **detect_norm_type(item.get("sourceId"), weight, text, item.get("publishedAt"), item.get("actType")),
         "classificationReason": {
             "actType": item.get("actType") or None,
             "actLabel": label,

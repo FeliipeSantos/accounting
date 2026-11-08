@@ -608,15 +608,23 @@ def _ementa(summary: str | None) -> str | None:
 
 _EVENT_SELECT = (
     "SELECT e.*, d.title AS doc_title, d.kind AS doc_kind, d.source_id AS doc_source, d.url AS doc_url, v.version_label, "
-    "v.summary AS version_summary, d.external_id AS doc_external, substr(v.full_text, 1, 800) AS text_head "
+    "v.summary AS version_summary, d.external_id AS doc_external, substr(v.full_text, 1, 800) AS text_head, "
+    "substr(coalesce(v.published_at, d.published_at, d.first_seen_at), 1, 10) AS published_day "
     "FROM reforma_events e JOIN reforma_documents d ON d.id = e.document_id "
     "LEFT JOIN reforma_document_versions v ON v.id = e.version_id"
 )
 _IMPORTANCE_ORDER = "CASE e.importance WHEN 'critico' THEN 0 WHEN 'alto' THEN 1 WHEN 'medio' THEN 2 ELSE 3 END"
 
 
+_PUBLISHED_DAY = "substr(coalesce(v.published_at, d.published_at, d.first_seen_at), 1, 10)"
+
+
 def list_events(date_from: str, date_to: str, filters: dict) -> list[dict]:
-    where = ["e.event_date >= :f", "e.event_date <= :t", "e.status = 'ativo'"]
+    """Active events dated in the period, or (filters["byPublication"]) the events of the acts
+    published in the period, whatever their date: the changes of the week."""
+    by_publication = bool(filters.get("byPublication"))
+    period = _PUBLISHED_DAY if by_publication else "e.event_date"
+    where = [f"{period} >= :f", f"{period} <= :t", "e.status = 'ativo'"]
     params: dict = {"f": date_from, "t": date_to}
     if filters.get("kind"):
         where.append("e.kind = :kind")
@@ -633,11 +641,17 @@ def list_events(date_from: str, date_to: str, filters: dict) -> list[dict]:
         f"{_EVENT_SELECT} WHERE {' AND '.join(where)} ORDER BY e.event_date, {_IMPORTANCE_ORDER}, e.title LIMIT 2000",
         **params,
     )
-    events = [{**_row_to_event(r), "subjects": subjects} for r, subjects in zip(rows, subjects_of(rows), strict=True)]
+    events = [
+        {**_row_to_event(r), "subjects": subjects, "publishedAt": r["published_day"]}
+        for r, subjects in zip(rows, subjects_of(rows), strict=True)
+    ]
     if filters.get("subjects"):
         wanted = set(filters["subjects"])
         events = [e for e in events if wanted & set(e["subjects"])]
     stored = merge_duplicates(_without_confirmed_citations(events))
+    if by_publication:
+        # os recorrentes não são publicados: não entram nas mudanças
+        return stored
     # prazos recorrentes: calculados para o período, não guardados
     recurring_events = [e for e in recurring.occurrences(date_from, date_to) if recurring.matches(e, filters)]
     if recurring_events:

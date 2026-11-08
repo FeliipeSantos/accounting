@@ -170,6 +170,8 @@ export interface CalendarEvent {
   };
   /** Subjects of the event (Reforma Tributária, ICMS...). */
   subjects: string[];
+  /** Day the act was published (stored events only). */
+  publishedAt?: string;
   /** Recurring deadlines only: newer acts that may have changed the rule. */
   review?: { since: string; acts: ReviewAct[] } | null;
   /** The same change found in other documents (the same act from another source, the same news). */

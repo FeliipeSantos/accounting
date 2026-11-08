@@ -1,13 +1,13 @@
 import { BellOutlined, DownOutlined, LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Flex, Popover } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { useAuth } from '@/core/auth/authContext';
 import { GlobalSearch } from '@/core/layout/GlobalSearch';
 import { useLayout } from '@/core/layout/layoutContext';
-import type { NotificationGroup } from '@/core/layout/notifications';
+import { countNew, isNew, ITEMS_PER_GROUP, type NotificationGroup, notificationsApi } from '@/core/layout/notifications';
 import { IconCircle } from '@/core/ui';
 import { MODULES } from '@/modules';
 import { useModuleNotifications } from '@/modules/notifications';
@@ -184,6 +184,22 @@ const EntryTexts = styled.span`
   }
 `;
 
+// entrada que chegou depois da última visita à central
+const NewDot = styled.i`
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: ${colors.blue};
+`;
+
+const NewCount = styled.span`
+  font-size: 12px;
+  font-weight: 500;
+  color: ${colors.blue};
+`;
+
 const When = styled.span`
   font-size: 11.5px;
   color: ${colors.textSubtle};
@@ -225,14 +241,22 @@ const PanelShadow = styled.div`
   overflow: hidden;
 `;
 
-function NotificationPanel({ groups, onOpen }: { groups: NotificationGroup[]; onOpen: (path: string) => void }) {
-  const total = groups.reduce((sum, g) => sum + g.total, 0);
+interface NotificationPanelProps {
+  groups: NotificationGroup[];
+  /** Last visit before this opening: the entries after it are marked as new. */
+  seenAt: string | null;
+  onOpen: (path: string) => void;
+}
+
+function NotificationPanel({ groups, seenAt, onOpen }: NotificationPanelProps) {
+  const total = groups.reduce((sum, g) => sum + g.items.length, 0);
+  const fresh = countNew(groups, seenAt);
   return (
     <PanelShadow>
       <Panel role="dialog" aria-label="Central de notificações">
         <PanelHead>
           <span>Notificações</span>
-          {total > 0 && <Badge count={total} color={colors.red} />}
+          {fresh > 0 && <NewCount>{fresh === 1 ? '1 nova' : `${fresh} novas`}</NewCount>}
         </PanelHead>
         {total === 0 && <Empty>Nenhuma notificação no momento.</Empty>}
         {groups
@@ -240,7 +264,7 @@ function NotificationPanel({ groups, onOpen }: { groups: NotificationGroup[]; on
           .map((group) => (
             <div key={group.key}>
               <GroupLabel>{group.label}</GroupLabel>
-              {group.items.map((item) => (
+              {group.items.slice(0, ITEMS_PER_GROUP).map((item) => (
                 <Entry key={item.id} type="button" onClick={() => onOpen(item.path)}>
                   <IconCircle $tone={item.tone} $size={32} aria-hidden>
                     {item.icon}
@@ -250,6 +274,7 @@ function NotificationPanel({ groups, onOpen }: { groups: NotificationGroup[]; on
                     {item.description && <small>{item.description}</small>}
                   </EntryTexts>
                   {item.when && <When>{item.when}</When>}
+                  {isNew(item, seenAt) && <NewDot aria-label="Nova" />}
                 </Entry>
               ))}
               {group.seeAllPath && (
@@ -278,8 +303,31 @@ export function GlobalHeader() {
   const groups = useModuleNotifications();
   const [open, setOpen] = useState(false);
   const user = session.status === 'authenticated' ? session.user : '';
-  const total = groups.reduce((sum, g) => sum + g.total, 0);
-  const bellLabel = total ? `Notificações: ${total} pendente(s)` : 'Notificações';
+  // última visita à central (no servidor) e a visita anterior, que marca as "novas" enquanto o painel está aberto
+  const [seenAt, setSeenAt] = useState<string | null | undefined>(undefined);
+  const [shownSince, setShownSince] = useState<string | null>(null);
+  const total = seenAt === undefined ? 0 : countNew(groups, seenAt);
+  const bellLabel = total ? `Notificações: ${total} nova(s)` : 'Notificações';
+
+  useEffect(() => {
+    if (!user) return;
+    notificationsApi
+      .seen()
+      .then(setSeenAt)
+      // sem a última visita, nada conta como novo: a central é só um aviso
+      .catch(() => setSeenAt(new Date().toISOString()));
+  }, [user]);
+
+  function toggle(next: boolean) {
+    setOpen(next);
+    if (!next) return;
+    // ao abrir, tudo passa a vista; o painel ainda destaca o que era novo
+    setShownSince(seenAt ?? null);
+    notificationsApi
+      .markSeen()
+      .then(setSeenAt)
+      .catch(() => undefined);
+  }
 
   function openPath(path: string) {
     setOpen(false);
@@ -295,12 +343,12 @@ export function GlobalHeader() {
       <Flex align="center" gap={8}>
         <Popover
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={toggle}
           trigger="click"
           placement="bottomRight"
           arrow={false}
           styles={{ body: { padding: 0, background: 'transparent', boxShadow: 'none' } }}
-          content={<NotificationPanel groups={groups} onOpen={openPath} />}
+          content={<NotificationPanel groups={groups} seenAt={shownSince} onOpen={openPath} />}
         >
           <Badge count={total} size="small" offset={[-4, 4]}>
             <IconButton type="text" shape="circle" icon={<BellOutlined />} aria-label={bellLabel} title={bellLabel} />

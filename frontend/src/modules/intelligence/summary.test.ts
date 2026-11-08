@@ -51,9 +51,7 @@ describe('publication summary', () => {
     expect(citedNorms({ title: 'Despachos', excerpt: 'Medida Provisória nº 1...' })).toEqual([]);
     expect(citedNorms({ title: 'Convênio', excerpt: 'alterações decorrentes da Lei Complementar nº 236, de 2026.' })).toEqual(['LC 236/2026']);
     expect(citedNorms(LC_238)).toEqual(['LC 123/2006']);
-    expect(
-      citedNorms({ title: 'Instrução Normativa RFB nº 2.300', excerpt: 'Altera a Instrução Normativa RFB nº 2.300 e a Lei nº 9.430/1996.' }),
-    ).toEqual(['Lei 9.430/1996']);
+    expect(citedNorms({ title: 'Instrução Normativa RFB nº 2.300', excerpt: 'Altera a Instrução Normativa RFB nº 2.300 e a Lei nº 9.430/1996.' })).toEqual(['Lei 9.430/1996']);
   });
 
   it('finds who is affected', () => {
@@ -65,6 +63,7 @@ describe('publication summary', () => {
     expect(validityText({ normType: 'Norma vigente', effectiveDate: '2026-10-21' })).toBe('Em vigor desde 21/10/2026.');
     expect(validityText({ normType: 'Norma com vigência futura', effectiveDate: '2027-01-01' })).toBe('Entra em vigor em 01/01/2027.');
     expect(validityText({ normType: 'Projeto de lei', effectiveDate: null })).toMatch(/tramitação/);
+    expect(validityText({ normType: 'Documento técnico', effectiveDate: null })).toMatch(/não é norma/);
     expect(validityText(LC_238)).toMatch(/Não identificada/);
   });
 

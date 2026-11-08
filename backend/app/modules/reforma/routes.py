@@ -11,7 +11,8 @@ Personal module: every route except /access requires a user allowed by REFORMA_U
     GET  /documents                      -> documents (source, kind, q, changed, limit, offset)
     GET  /documents/<id>                 -> one document with its version history
     GET  /documents/<id>/versions/<vid>  -> full text of one version
-    GET  /events                         -> calendar events of a period (from, to, kind, importance, ...)
+    GET  /events                         -> calendar events of a period (from, to, kind, importance, subject,
+                                            by=publicacao for the acts published in the period)
     GET  /events/<id>                    -> one event with its history
 """
 
@@ -153,6 +154,8 @@ def calendar_events():
         "subjects": subjects,
         "hidePublications": args.get("hidePublications") == "true",
         "officialOnly": args.get("officialOnly") == "true",
+        # by=publicacao: atos publicados no período (as mudanças da semana), qualquer que seja a data
+        "byPublication": args.get("by") == "publicacao",
     }
     return json_response(repository.list_events(date_from, date_to, filters))
 

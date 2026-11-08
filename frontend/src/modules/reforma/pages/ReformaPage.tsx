@@ -15,7 +15,9 @@ import { isOpenDocumentState } from '@/modules/reforma/search';
 import type { Status } from '@/modules/reforma/types';
 import { CalendarView } from '@/modules/reforma/views/CalendarView';
 import { DocumentsView } from '@/modules/reforma/views/DocumentsView';
+import { PanelView } from '@/modules/reforma/views/PanelView';
 import { SourcesView } from '@/modules/reforma/views/SourcesView';
+import { TimelineView } from '@/modules/reforma/views/TimelineView';
 import { colors, fontSize, tones } from '@/theme';
 
 const POLL_MS = 4000;
@@ -38,6 +40,8 @@ const LastSync = styled.span<{ $color: string }>`
 
 const TABS = [
   { key: 'calendario', label: 'Calendário' },
+  { key: 'painel', label: 'Painel' },
+  { key: 'linha-do-tempo', label: 'Linha do tempo' },
   { key: 'documentos', label: 'Documentos' },
   { key: 'fontes', label: 'Fontes e sincronização' },
 ] as const;
@@ -131,10 +135,12 @@ function ReformaContent() {
           onChange={(key) => setParams(key === 'calendario' ? {} : { aba: key })}
           items={TABS.map(({ key, label }) => ({
             key,
-            label: key === 'documentos' ? `${label} (${data.totals.documents})` : key === 'calendario' ? `${label} (${data.events.upcoming} a seguir)` : label,
+            label: key === 'documentos' ? `${label} (${data.totals.documents})` : label,
           }))}
         />
         {tab === 'calendario' && <CalendarView status={data} refreshKey={refreshKey} onOpenDocument={setOpenDocument} />}
+        {tab === 'painel' && <PanelView status={data} refreshKey={refreshKey} />}
+        {tab === 'linha-do-tempo' && <TimelineView status={data} refreshKey={refreshKey} />}
         {tab === 'documentos' && <DocumentsView key={searchTerm} initialSearch={searchTerm} status={data} refreshKey={refreshKey} onOpen={setOpenDocument} />}
         {tab === 'fontes' && <SourcesView status={data} refreshKey={refreshKey} />}
       </div>

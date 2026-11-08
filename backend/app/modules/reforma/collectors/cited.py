@@ -46,7 +46,10 @@ DOU_SEARCH_BUSINESS_DAYS = 7
 DOU_SECTIONS = ["do1", "do1e"]
 # atos de antes da Reforma (ex.: TIPI de 2022) não entram no calendário
 ACTS_SINCE = "2025-01-01"
-MAX_LOOKUPS_PER_RUN = 6
+# dias com muitos atos citados: até 25 buscas por execução, dentro de 4 minutos; o que sobrar
+# fica para a próxima execução (o mais recente primeiro)
+MAX_LOOKUPS_PER_RUN = 25
+LOOKUP_TIME_BUDGET = timedelta(minutes=4)
 MISS_RETRY = timedelta(days=7)
 
 
@@ -152,12 +155,18 @@ def search_days(date: str, before: bool = False) -> list[str]:
     return days
 
 
-def find_in_dou(ctx: SyncContext, key: tuple[str, str], date: str, before: bool = False) -> dict | None:
-    """The act in the DOU of the search days (see search_days): {title, urlTitle, date}."""
+def find_in_dou(ctx: SyncContext, key: tuple[str, str], date: str, before: bool = False, pages: dict | None = None) -> dict | None:
+    """The act in the DOU of the search days (see search_days): {title, urlTitle, date}.
+
+    pages: the DOU pages already read in this run, by address (buscas vizinhas leem os mesmos dias)."""
+    pages = {} if pages is None else pages
     for day in search_days(date, before):
         y, m, d = day.split("-")
         for section in DOU_SECTIONS:
-            for act in parse_dou_page(ctx.fetch_text(f"https://www.in.gov.br/leiturajornal?data={d}-{m}-{y}&secao={section}")):
+            address = f"https://www.in.gov.br/leiturajornal?data={d}-{m}-{y}&secao={section}"
+            if address not in pages:
+                pages[address] = parse_dou_page(ctx.fetch_text(address))
+            for act in pages[address]:
                 title = act.get("title") or act.get("titulo") or ""
                 if act.get("urlTitle") and act_key(title) == key:
                     return {"title": clean_text(decode_entities(title), 500), "urlTitle": act["urlTitle"], "date": day}
@@ -168,7 +177,8 @@ def collect(ctx: SyncContext) -> list[dict]:
     known = _known_acts()
     cache = _load_cache()
     now = datetime.now(UTC)
-    items, lookups = [], 0
+    items, lookups, pages = [], 0, {}
+    started = datetime.now(UTC)
     # o mais recente primeiro: é o que está valendo agora
     for key, (citation, date, before) in sorted(_cited_in_documents().items(), key=lambda entry: entry[1][1], reverse=True):
         cache_key = f"{key[0]}|{key[1]}|{'ate ' if before else ''}{date}"
@@ -182,10 +192,10 @@ def collect(ctx: SyncContext) -> list[dict]:
         if entry and entry.get("status") == "found":
             found = entry
         else:
-            if lookups >= MAX_LOOKUPS_PER_RUN:
+            if lookups >= MAX_LOOKUPS_PER_RUN or datetime.now(UTC) - started > LOOKUP_TIME_BUDGET:
                 break
             lookups += 1
-            found = find_in_dou(ctx, key, date, before)
+            found = find_in_dou(ctx, key, date, before, pages)
             status = "found" if found else "missing"
             cache[cache_key] = {
                 "status": status,

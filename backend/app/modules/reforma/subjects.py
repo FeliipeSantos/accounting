@@ -43,6 +43,11 @@ _EXTRA = {
         r"\b(?:df-e|dfe|bp-e|nf3e|nfcom|gtv-e|dc-e|nfag|nfgas|cte-os|mdfe|nfse|dere|duimp|"
         r"documentos? fisca(?:l|is) eletronicos?|declaracao de importacao de remessa)\b"
     ),
+    # programas de conformidade (Sintonia, Confia): classificam o contribuinte pelo cumprimento
+    # das obrigações, principais e acessórias
+    "obrigacoes-acessorias": re.compile(r"\b(?:sintonia|programa confia|conformidade tributaria)\b"),
+    # tributação dos combustíveis (alíquotas de PIS/Cofins e Cide, subvenção ao etanol)
+    "pis-cofins": re.compile(r"\b(?:biocombustiveis|etanol hidratado combustivel|cide[- ]combustiveis)\b"),
 }
 
 

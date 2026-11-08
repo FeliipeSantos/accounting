@@ -22,9 +22,11 @@ export const reformaApi = {
   startRun: () => apiRequest<{ started: boolean }>(`${BASE}/runs`, { method: 'POST' }),
   documents: (filters: Partial<DocumentFilters>, offset = 0) => apiRequest<DocumentPage>(`${BASE}/documents?${query(filters, offset)}`),
   document: (id: string) => apiRequest<DocumentDetail>(`${BASE}/documents/${encodeURIComponent(id)}`),
-  /** Active events between two dates (yyyy-mm-dd, at most 13 months apart). */
-  events: (from: string, to: string, filters: Partial<EventFilters> = {}) => {
+  /** Active events between two dates (yyyy-mm-dd, at most 13 months apart); byPublication:
+   * the events of the acts published in the period, whatever their date (the changes). */
+  events: (from: string, to: string, filters: Partial<EventFilters> = {}, byPublication = false) => {
     const params = new URLSearchParams({ from, to });
+    if (byPublication) params.set('by', 'publicacao');
     if (filters.kind) params.set('kind', filters.kind);
     if (filters.importance?.length) params.set('importance', filters.importance.join(','));
     if (filters.hidePublications) params.set('hidePublications', 'true');

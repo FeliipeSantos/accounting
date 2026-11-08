@@ -19,10 +19,7 @@ export interface PublicationSummary {
 const MAX_HEADLINE = 280;
 
 function normalize(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
 // "<tipo> nº <número>" seguido, opcionalmente, de "/2006" ou ", de 14 de dezembro de 2006"
@@ -196,6 +193,8 @@ export function validityText(pub: Pick<Publication, 'normType' | 'effectiveDate'
       return 'Projeto de lei em tramitação: ainda não produz efeitos.';
     case 'Comunicado informativo':
       return 'Comunicado informativo, sem força de norma.';
+    case 'Documento técnico':
+      return 'Documento técnico (leiaute e regras de validação), não é norma: as datas de homologação e produção estão no próprio documento.';
     case 'Norma com vigência futura':
       return pub.effectiveDate ? `Entra em vigor em ${formatDate(pub.effectiveDate)}.` : 'Vigência futura (data não identificada).';
     case 'Norma vigente':
