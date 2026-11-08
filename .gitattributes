@@ -1,0 +1,3 @@
+# scripts e configurações da VPS: sempre com fim de linha do Linux
+*.sh text eol=lf
+deploy/* text eol=lf

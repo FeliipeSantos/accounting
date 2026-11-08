@@ -11,6 +11,8 @@ Guia para publicar o Project Accounting (Portal de Projetos + Publicações) num
 
 Todos os dados (usuários, sessões, projetos e Publicações) ficam **no banco único**. O `.env` guarda só a infraestrutura (porta, fuso, caminho do banco).
 
+> **Sem domínio, pelo IP e uma porta (ex.: `http://IP:8082`), ao lado de outros sistemas?** Use a [instalação por IP e porta](#instalação-por-ip-e-porta-sem-domínio), que é automática. O restante deste guia é a instalação com domínio e HTTPS.
+
 > Escolha uma **VPS no Brasil**: alguns sites oficiais podem recusar acessos de fora do país ou de datacenters. O passo 8 confirma isso.
 
 > Já tem a versão antiga (servidor Node) instalada na VPS? Siga a seção [Vindo da versão Node](#vindo-da-versão-node) no fim deste guia.
@@ -273,6 +275,51 @@ sudo -u project-accounting .venv/bin/flask db upgrade
 **Ao reiniciar:**
 - **Sessões:** ficam no banco, então os usuários **continuam logados**.
 - **Coleta em andamento:** o serviço espera até 25 s para ela terminar.
+
+## Instalação por IP e porta (sem domínio)
+
+Para acessar por `http://IP-da-VPS:8082`, sem domínio, numa VPS que já roda outros sistemas.
+
+**O que o script faz:**
+- **Código:** baixa do GitHub para `/opt/project-accounting`.
+- **Tela:** gera o build com um Node.js 24 próprio, em `/opt/project-accounting-node`, sem trocar o Node do sistema.
+- **Backend:** sobe só em `127.0.0.1:8090`; o Nginx atende na porta 8082 e repassa `/api`.
+- **Isolamento:** não mexe em outras portas, outros sites do Nginx nem no Node do sistema. Se o Nginx não estava instalado, ele não é ligado na porta 80.
+- **Firewall da VPS:** libera a porta 8082 no `ufw` (se ativo) e no `iptables` das imagens da Oracle Cloud.
+
+> **Sem HTTPS**, o login e os dados trafegam sem criptografia, e o `.env` usa `COOKIE_SECURE=false`. Quando houver um domínio, passe para o Nginx com HTTPS (passo 6).
+
+**1. No seu computador, gere o pacote de dados** (banco e PDFs do Calendário). Na pasta `backend`:
+
+```bash
+.venv\Scripts\flask db-backup        # Linux/macOS: .venv/bin/flask db-backup
+```
+
+Copie o arquivo criado para uma pasta vazia com o nome `app.db`, junto com a pasta `data/reforma-files`, e compacte as duas (`tar -czf project-accounting-dados.tar.gz app.db reforma-files`). Envie para a VPS:
+
+```bash
+scp project-accounting-dados.tar.gz ubuntu@IP-da-VPS:/tmp/
+```
+
+**2. Na VPS, baixe o código e rode a instalação:**
+
+```bash
+sudo apt-get install -y git
+sudo git clone https://github.com/FeliipeSantos/accounting.git /opt/project-accounting
+sudo bash /opt/project-accounting/deploy/vps-install.sh /tmp/project-accounting-dados.tar.gz
+```
+
+O script pergunta o seu nome de usuário e a senha (mínimo 10 caracteres), remove o `admin/admin` do banco copiado e mostra o endereço no fim. Sem o arquivo de dados, o banco começa vazio.
+
+**3. Libere a porta 8082 no firewall do provedor.** Na Oracle Cloud: *VCN > Security Lists > Add Ingress Rule*, origem `0.0.0.0/0`, protocolo TCP, porta `8082`.
+
+**Atualizar** com o que estiver no GitHub (backup, código, tela, migrations e reinício):
+
+```bash
+sudo bash /opt/project-accounting/deploy/vps-update.sh
+```
+
+Outras portas: `sudo PUBLIC_PORT=8083 API_PORT=8091 bash .../vps-install.sh`.
 
 ## Vindo da versão Node
 
