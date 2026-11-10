@@ -26,12 +26,12 @@ export function BrandMark({ size = 28 }: { size?: number }) {
   );
 }
 
-const Logo = styled.span<{ $size: number }>`
+const Logo = styled.span<{ $size: number; $fontSize?: number }>`
   display: inline-flex;
   align-items: center;
   gap: ${({ $size }) => Math.round($size * 0.36)}px;
   color: inherit;
-  font-size: ${({ $size }) => Math.round($size * 0.78)}px;
+  font-size: ${({ $size, $fontSize }) => $fontSize ?? Math.round($size * 0.78)}px;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -39,9 +39,9 @@ const Logo = styled.span<{ $size: number }>`
 `;
 
 /** Full logo: the mark and the name in lower case. The name takes the text color of its parent. */
-export function BrandLogo({ size = 28, className }: { size?: number; className?: string }) {
+export function BrandLogo({ size = 28, fontSize, className }: { size?: number; /** Size of the name, when not the one that goes with the mark. */ fontSize?: number; className?: string }) {
   return (
-    <Logo $size={size} className={className}>
+    <Logo $size={size} $fontSize={fontSize} className={className}>
       <BrandMark size={size} />
       <span>{BRAND_NAME}</span>
     </Logo>

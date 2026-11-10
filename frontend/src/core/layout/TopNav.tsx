@@ -22,12 +22,13 @@ const NavItem = styled.button<{ $active: boolean }>`
   height: 36px;
   padding: 0 14px;
   border: none;
-  border-radius: ${radius.card}px;
+  border-radius: ${radius.pill}px;
   background: transparent;
   color: ${colors.textDark};
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   white-space: nowrap;
   cursor: pointer;
   transition:

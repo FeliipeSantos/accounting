@@ -1,4 +1,4 @@
-import { AuditOutlined, CalendarOutlined, FileDoneOutlined, FileTextOutlined, ReadOutlined, SolutionOutlined, TeamOutlined, WalletOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, AuditOutlined, CalendarOutlined, FileDoneOutlined, FileTextOutlined, ReadOutlined, SolutionOutlined, TeamOutlined, WalletOutlined } from '@ant-design/icons';
 import type { ReactNode } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import { dasSearch } from '@/modules/das/search';
 import { intelligenceRoutes } from '@/modules/intelligence/routes';
 import { PUBLICATIONS_BASE } from '@/modules/intelligence/paths';
 import { intelligenceSearch } from '@/modules/intelligence/search';
+import { OVERVIEW_PATH, overviewRoutes } from '@/modules/overview/routes';
 import { projectsRoutes } from '@/modules/projects/routes';
 import { projectsSearch } from '@/modules/projects/search';
 import { RECEIPTS_PATH } from '@/modules/receipts/format';
@@ -53,7 +54,19 @@ export const MODULE_GROUPS: ModuleGroup[] = [
 ];
 
 export const MODULES: ModuleDefinition[] = [
-  { key: 'projects', label: 'Portal de Projetos', icon: <FileTextOutlined />, path: '/projetos', routes: projectsRoutes, search: projectsSearch },
+  // primeiro módulo: é a página inicial ("/" abre aqui); a ordem daqui é a ordem da navegação
+  { key: 'overview', label: 'Visão Geral', icon: <AppstoreOutlined />, path: OVERVIEW_PATH, routes: overviewRoutes },
+  { key: 'clients', label: 'Clientes', icon: <TeamOutlined />, path: CLIENTS_PATH, routes: clientsRoutes, search: clientsSearch, group: 'gestao-contabil' },
+  {
+    key: 'receipts',
+    label: 'Recebimentos',
+    icon: <WalletOutlined />,
+    path: RECEIPTS_PATH,
+    routes: receiptsRoutes,
+    search: receiptsSearch,
+    group: 'gestao-contabil',
+  },
+  { key: 'das', label: 'Geração de DAS', icon: <FileDoneOutlined />, path: DAS_PATH, routes: dasRoutes, search: dasSearch, group: 'gestao-contabil' },
   {
     key: 'intelligence',
     label: 'Publicações',
@@ -73,15 +86,5 @@ export const MODULES: ModuleDefinition[] = [
     checkAccess: reformaApi.access,
     group: 'inteligencia-contabil',
   },
-  { key: 'clients', label: 'Clientes', icon: <TeamOutlined />, path: CLIENTS_PATH, routes: clientsRoutes, search: clientsSearch, group: 'gestao-contabil' },
-  {
-    key: 'receipts',
-    label: 'Recebimentos',
-    icon: <WalletOutlined />,
-    path: RECEIPTS_PATH,
-    routes: receiptsRoutes,
-    search: receiptsSearch,
-    group: 'gestao-contabil',
-  },
-  { key: 'das', label: 'Geração de DAS', icon: <FileDoneOutlined />, path: DAS_PATH, routes: dasRoutes, search: dasSearch, group: 'gestao-contabil' },
+  { key: 'projects', label: 'Portal de Projetos', icon: <FileTextOutlined />, path: '/projetos', routes: projectsRoutes, search: projectsSearch },
 ];
