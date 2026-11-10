@@ -71,6 +71,8 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 - **Mensagem:** usuário inexistente e senha errada recebem a mesma.
 - **Sucesso:** um login correto zera as falhas daquele IP.
 
+**Login:** é o e-mail da pessoa. Quando o texto digitado não existe como está, o login tenta de novo em minúsculas (`Ana@Exemplo.com` entra como `ana@exemplo.com`).
+
 ### Notificações: `/api/notifications`
 
 | Método e rota | Resposta |
@@ -79,6 +81,22 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 | `PUT /api/notifications/seen` | Marca agora como a última visita e devolve `{ seenAt }`. |
 
 - **Itens:** vêm de cada módulo (publicações críticas dos últimos 30 dias, avisos do Calendário); o sino conta como novos os que apareceram depois de `seenAt`.
+
+### Meu perfil: `/api/profile`
+
+| Método e rota | Resposta |
+|---|---|
+| `GET /api/profile` | `{ user, name, avatar, createdAt, calendarByName }`. `name` é o nome de exibição (`null` sem nome); `calendarByName` é `true` quando o Calendário é liberado para esse nome em `REFORMA_USERS`. |
+| `PUT /api/profile` `{ name, avatar }` | Salva nome e avatar e devolve o perfil. |
+| `GET /api/profile/avatar` | A foto enviada (`image/png`, `image/jpeg` ou `image/webp`); `404` sem foto. |
+| `POST /api/profile/password` `{ currentPassword, newPassword }` | `200 { user }`. Encerra as outras sessões do usuário e mantém a que fez a troca. |
+| `POST /api/profile/username` `{ currentPassword, newUsername }` | `200 { user }` com o novo login. O login é o e-mail da pessoa, guardado em minúsculas. Sessões, favoritos, notificações e o `updated_by` dos registros passam para o novo nome. |
+
+- **Senha atual:** as duas trocas pedem a senha atual. Errada: `400 { "error": "Senha atual incorreta." }` (nunca `401`, que a tela trata como sessão expirada).
+- **Limite:** as senhas atuais erradas contam no mesmo limite do login (5 por IP em 15 minutos); passando dele, `429`.
+- **Avatar:** `null` (a tela mostra as iniciais), `{ kind: "preset", seed }` (ilustração desenhada pela tela a partir da semente, `^[\w-]{1,64}$`) ou `{ kind: "image", url }` (foto enviada; o `url` muda a cada troca). No `PUT`, envie `{ kind: "upload", dataUrl }` para uma foto nova (JPG, PNG ou WebP de até 512 KB, conferida pela assinatura do arquivo) ou `{ kind: "image" }` para manter a atual.
+- **Nome:** até 80 caracteres; vazio volta a `null`.
+- **Validação (`400`):** nova senha com pelo menos 10 caracteres; novo login precisa ser um e-mail válido (`E-mail inválido.`), diferente do atual e ainda não usado.
 
 ## 5. Portal de Projetos: `/api/projects`
 

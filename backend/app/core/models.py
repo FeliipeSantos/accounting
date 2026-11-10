@@ -1,6 +1,6 @@
 """Core tables: users and login sessions (prefix core_)."""
 
-from sqlalchemy import ForeignKey, Index, Integer, Text
+from sqlalchemy import ForeignKey, Index, Integer, LargeBinary, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.extensions import db
@@ -15,6 +15,12 @@ class User(db.Model):
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[str] = mapped_column(Text, nullable=False)
     updated_at: Mapped[str] = mapped_column(Text, nullable=False)
+    # perfil (Meu perfil): nome de exibição e avatar; sem avatar, a tela usa as iniciais
+    display_name: Mapped[str | None] = mapped_column(Text)
+    # "preset:<semente>" (ilustração gerada na tela) ou "image" (foto enviada, em avatar_image)
+    avatar: Mapped[str | None] = mapped_column(Text)
+    avatar_image: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
+    avatar_mime: Mapped[str | None] = mapped_column(Text)
 
 
 class Session(db.Model):

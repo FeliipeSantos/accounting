@@ -4,7 +4,7 @@
  * on the screen and in the printed report.
  */
 export const CHAR_LIMITS = {
-  username: 64,
+  username: 254,
   password: 200,
   projectName: 300,
   projectDescription: 2000,

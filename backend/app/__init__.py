@@ -20,7 +20,7 @@ class StartupError(RuntimeError):
 
 def create_app(settings: Settings | None = None) -> Flask:
     """Builds the application. It does not touch the database schema or the users."""
-    from app.core import auth, cli, database, notifications  # noqa: F401  (database registra os PRAGMAs)
+    from app.core import auth, cli, database, notifications, profile  # noqa: F401  (database registra os PRAGMAs)
     from app.core.http import init_http
     from app.extensions import db, migrate
     from app.modules import register_modules
@@ -38,6 +38,7 @@ def create_app(settings: Settings | None = None) -> Flask:
     init_http(app)
     app.register_blueprint(auth.bp)
     app.register_blueprint(notifications.bp)
+    app.register_blueprint(profile.bp)
     register_modules(app)
     cli.register_commands(app)
     return app

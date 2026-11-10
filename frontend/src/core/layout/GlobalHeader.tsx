@@ -1,10 +1,11 @@
-import { BellOutlined, DownOutlined, InfoCircleOutlined, LogoutOutlined, MenuOutlined, MoonOutlined, SettingOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
-import { Badge, Button, Dropdown, Flex, Popover } from 'antd';
+import { BellOutlined, CopyOutlined, DownOutlined, HistoryOutlined, LogoutOutlined, MenuOutlined, MoonOutlined, SettingOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
+import { App, Badge, Button, Dropdown, Flex, Popover } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { useAuth } from '@/core/auth/authContext';
+import { displayName } from '@/core/auth/profile';
 import { buildMenuItems } from '@/core/layout/menuItems';
 import { useLayout } from '@/core/layout/layoutContext';
 import { MobileNav, TopNav } from '@/core/layout/TopNav';
@@ -12,10 +13,11 @@ import { useVisibleModules } from '@/core/layout/useVisibleModules';
 import { SETTINGS_PATH } from '@/core/settings/routes';
 import { countNew, isNew, ITEMS_PER_GROUP, type NotificationGroup, notificationsApi } from '@/core/layout/notifications';
 import { useThemeMode } from '@/core/theme/themeMode';
-import { BRAND_NAME, BrandLogo, IconCircle, VERSION_LABEL } from '@/core/ui';
+import { APP_VERSION, BRAND_NAME, BrandLogo, IconCircle } from '@/core/ui';
+import { UserAvatar } from '@/core/ui/UserAvatar';
 import { MODULE_GROUPS, MODULES } from '@/modules';
 import { useModuleNotifications } from '@/modules/notifications';
-import { chrome, colors, GLOBAL_HEADER_HEIGHT, palette, shadows } from '@/theme';
+import { chrome, colors, GLOBAL_HEADER_HEIGHT, shadows } from '@/theme';
 
 // barra fixa no topo: marca à esquerda, módulos no centro e ações à direita, em todas as rotas
 const Bar = styled.header`
@@ -112,22 +114,8 @@ const UserButton = styled.button`
   }
 `;
 
-const Avatar = styled.span`
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: ${palette.blue600};
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  flex-shrink: 0;
-`;
-
 const Hello = styled.span`
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
   max-width: 180px;
@@ -167,7 +155,7 @@ const PanelHead = styled.div`
 const GroupLabel = styled.div`
   padding: 10px 16px 4px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: ${colors.textSubtle};
@@ -204,7 +192,7 @@ const EntryTexts = styled.span`
 
   b {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${colors.textDark};
     line-height: 1.35;
     display: -webkit-box;
@@ -256,18 +244,86 @@ const SeeAll = styled(Button)`
   }
 `;
 
-const ProfileHead = styled.div`
-  padding: 4px 4px 8px;
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-  color: ${colors.textMuted};
+// menu do usuário: cabeçalho com nome e e-mail, atalhos, versão e "Sair"
+const UserMenu = styled.div`
+  min-width: 260px;
+  max-width: min(320px, calc(100vw - 32px));
+  background: ${colors.bgElevated};
+  border: 1px solid ${colors.border};
+  border-radius: 12px;
+  box-shadow: ${shadows.lg};
+  overflow: hidden;
 
-  b {
-    font-size: 13.5px;
-    color: ${colors.textDark};
-    font-weight: 600;
+  .ant-dropdown-menu {
+    background: transparent;
+    box-shadow: none;
+    padding: 6px;
   }
+`;
+
+const UserMenuHead = styled.div`
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid ${colors.border};
+
+  strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: ${colors.navy};
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    display: block;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: ${colors.textMuted};
+    overflow-wrap: anywhere;
+  }
+`;
+
+const CopyButton = styled.button`
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: ${colors.textSubtle};
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    background: ${colors.bgMuted};
+    color: ${colors.textDark};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${colors.blue};
+    outline-offset: 1px;
+  }
+`;
+
+const VersionRow = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+`;
+
+const VersionTag = styled.span`
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid ${colors.border};
+  background: ${colors.bgMuted};
+  font-size: 11.5px;
+  font-weight: 500;
+  color: ${colors.textDark};
+  font-variant-numeric: tabular-nums;
 `;
 
 const PanelShadow = styled.div`
@@ -331,7 +387,8 @@ function NotificationPanel({ groups, seenAt, onOpen }: NotificationPanelProps) {
  * tabs and actions start below it.
  */
 export function GlobalHeader() {
-  const { session, logout } = useAuth();
+  const { session, logout, profile } = useAuth();
+  const { message } = App.useApp();
   const { resolved: resolvedTheme, setMode: setThemeMode } = useThemeMode();
   const themeToggleLabel = resolvedTheme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';
   const { narrow } = useLayout();
@@ -345,6 +402,9 @@ export function GlobalHeader() {
   const groups = useModuleNotifications();
   const [open, setOpen] = useState(false);
   const user = session.status === 'authenticated' ? session.user : '';
+  // nome de exibição (Meu perfil); no topo, só o primeiro nome
+  const shownName = profile ? displayName(profile) : user;
+  const firstName = shownName.split(/\s+/)[0];
   // última visita à central (no servidor) e a visita anterior, que marca as "novas" enquanto o painel está aberto
   const [seenAt, setSeenAt] = useState<string | null | undefined>(undefined);
   const [shownSince, setShownSince] = useState<string | null>(null);
@@ -371,6 +431,13 @@ export function GlobalHeader() {
       .catch(() => undefined);
   }
 
+  function copyLogin() {
+    navigator.clipboard
+      .writeText(user)
+      .then(() => message.success('E-mail copiado.'))
+      .catch(() => message.error('Não foi possível copiar.'));
+  }
+
   function openPath(path: string) {
     setOpen(false);
     navigate(path);
@@ -381,7 +448,7 @@ export function GlobalHeader() {
       <Start>
         {narrow && <IconButton type="text" icon={<MenuOutlined />} onClick={() => setNavOpen(true)} aria-label="Abrir os módulos" title="Módulos" />}
         <BrandButton type="button" onClick={() => navigate('/')} aria-label={`${BRAND_NAME}: página inicial`} title="Página inicial">
-          <BrandLogo size={26} />
+          <BrandLogo size={26} fontSize={19} />
         </BrandButton>
       </Start>
       {!narrow && <TopNav entries={navEntries} activeKey={activeModule?.key} onNavigate={goToModule} />}
@@ -409,42 +476,48 @@ export function GlobalHeader() {
             <IconButton type="text" shape="circle" icon={<BellOutlined />} aria-label={bellLabel} title={bellLabel} />
           </Badge>
         </Popover>
-        <IconButton
-          type="text"
-          shape="circle"
-          icon={<SettingOutlined />}
-          onClick={() => navigate(SETTINGS_PATH)}
-          aria-label="Ajustes"
-          title="Ajustes"
-          aria-current={location.pathname.startsWith(SETTINGS_PATH) ? 'page' : undefined}
-        />
         <Dropdown
           trigger={['click']}
           placement="bottomRight"
           menu={{
             items: [
+              { key: 'perfil', icon: <UserOutlined />, label: 'Meu perfil', onClick: () => navigate(SETTINGS_PATH) },
+              { key: 'ajustes', icon: <SettingOutlined />, label: 'Ajustes', onClick: () => navigate(`${SETTINGS_PATH}?aba=preferencias`) },
+              { type: 'divider' },
               {
-                key: 'profile',
-                icon: <UserOutlined />,
+                key: 'version',
+                icon: <HistoryOutlined />,
                 label: (
-                  <ProfileHead>
-                    <span>Conectado como</span>
-                    <b>{user}</b>
-                  </ProfileHead>
+                  <VersionRow>
+                    Versão
+                    <VersionTag>v{APP_VERSION}</VersionTag>
+                  </VersionRow>
                 ),
                 disabled: true,
               },
               { type: 'divider' },
-              { key: 'logout', icon: <LogoutOutlined />, label: 'Sair da conta', onClick: () => void logout() },
-              { type: 'divider' },
-              // a versão ficava no rodapé do menu lateral; agora fica aqui (a mesma do login)
-              { key: 'version', icon: <InfoCircleOutlined />, label: VERSION_LABEL, disabled: true },
+              { key: 'logout', icon: <LogoutOutlined />, label: 'Sair', danger: true, onClick: () => void logout() },
             ],
           }}
+          popupRender={(menu) => (
+            <UserMenu>
+              <UserMenuHead>
+                <strong>
+                  {shownName}
+                  <CopyButton type="button" onClick={copyLogin} aria-label="Copiar e-mail de login" title="Copiar e-mail">
+                    <CopyOutlined />
+                  </CopyButton>
+                </strong>
+                {/* sem nome cadastrado, o título já é o e-mail */}
+                {shownName !== user && <span>{user}</span>}
+              </UserMenuHead>
+              {menu}
+            </UserMenu>
+          )}
         >
           <UserButton type="button" aria-label={`Perfil de ${user}`}>
-            <Avatar aria-hidden>{user.slice(0, 2)}</Avatar>
-            <Hello>Olá, {user}</Hello>
+            <UserAvatar avatar={profile?.avatar} name={shownName} />
+            <Hello>Olá, {firstName}</Hello>
             <Caret aria-hidden />
           </UserButton>
         </Dropdown>

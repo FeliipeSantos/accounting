@@ -1,64 +1,22 @@
-import { CheckCircleFilled, DesktopOutlined, MoonOutlined, SettingOutlined, SlidersOutlined, SunOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, DesktopOutlined, MoonOutlined, SettingOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
 import { Tabs } from 'antd';
+import { SlidersHorizontal } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 
 import { Page } from '@/core/layout/Page';
+import { About, Panel, Row } from '@/core/settings/layout';
+import { ProfileSettings } from '@/core/settings/ProfileSettings';
 import { THEME_MODES, type ThemeMode, useThemeMode } from '@/core/theme/themeMode';
 import { IconCircle } from '@/core/ui';
-import { colors, radius, shadows } from '@/theme';
+import { colors, radius } from '@/theme';
 
 const THEME_ICONS: Record<ThemeMode, ReactNode> = {
   system: <DesktopOutlined />,
   light: <SunOutlined />,
   dark: <MoonOutlined />,
 };
-
-// quadro das preferências: uma linha por grupo (explicação à esquerda, opções à direita)
-const Panel = styled.section`
-  background: ${colors.bgCard};
-  border: 1px solid ${colors.border};
-  border-radius: ${radius.card}px;
-  box-shadow: ${shadows.sm};
-  overflow: hidden;
-`;
-
-const Row = styled.div`
-  display: grid;
-  grid-template-columns: minmax(220px, 340px) minmax(0, 1fr);
-  gap: 24px;
-  padding: 24px;
-
-  & + & {
-    border-top: 1px solid ${colors.border};
-  }
-
-  @media (max-width: 900px) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    padding: 20px 16px;
-  }
-`;
-
-const About = styled.div`
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-
-  h2 {
-    margin: 0 0 4px;
-    font-size: 15px;
-    font-weight: 600;
-    color: ${colors.navy};
-  }
-
-  p {
-    margin: 0;
-    font-size: 13px;
-    color: ${colors.textMuted};
-    line-height: 1.55;
-  }
-`;
 
 const Options = styled.div`
   display: grid;
@@ -179,17 +137,36 @@ function Preferences() {
   );
 }
 
-/** Settings of the system. Each tab groups one kind of setting; "Preferências" is the first one. */
+// a primeira aba é a que abre sem ?aba= no endereço
+const TABS = ['perfil', 'preferencias'] as const;
+type SettingsTab = (typeof TABS)[number];
+
+/** Settings of the system. Each tab groups one kind of setting; the open tab is in the address (?aba=preferencias). */
 export function SettingsPage() {
+  const [params, setParams] = useSearchParams();
+  const requested = params.get('aba');
+  const tab: SettingsTab = TABS.find((key) => key === requested) ?? TABS[0];
   return (
     <Page icon={<SettingOutlined />} title="Ajustes" description="Gerencie a sua experiência no sistema.">
       <Tabs
-        defaultActiveKey="preferencias"
+        activeKey={tab}
+        onChange={(key) => setParams(key === TABS[0] ? {} : { aba: key }, { replace: true })}
         items={[
+          {
+            key: 'perfil',
+            label: 'Perfil',
+            icon: <UserOutlined />,
+            children: <ProfileSettings />,
+          },
           {
             key: 'preferencias',
             label: 'Preferências',
-            icon: <SlidersOutlined />,
+            // ícone da Lucide (o de controles do antd fica desalinhado); a classe anticon dá o mesmo espaço dos outros
+            icon: (
+              <span className="anticon" aria-hidden>
+                <SlidersHorizontal size="1em" strokeWidth={2} />
+              </span>
+            ),
             children: <Preferences />,
           },
         ]}

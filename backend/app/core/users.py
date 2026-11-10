@@ -11,7 +11,7 @@ import logging
 import os
 import re
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 
 from app.core.database import utc_now_iso
 from app.core.models import Session, User
@@ -25,7 +25,9 @@ SCRYPT_R = 8
 SCRYPT_P = 1
 SCRYPT_KEYLEN = 64
 SALT_BYTES = 16
-USER_PATTERN = re.compile(r"^[\w.@-]{1,64}$", re.ASCII)
+# o login é o e-mail da pessoa (o "admin" de desenvolvimento e logins antigos continuam válidos)
+USER_PATTERN = re.compile(r"^[\w.@+-]{1,254}$", re.ASCII)
+EMAIL_PATTERN = re.compile(r"^[\w.+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$", re.ASCII)
 MIN_PASSWORD_LENGTH = 10
 
 NO_USERS_MESSAGE = "Nenhum usuário no banco. Crie o primeiro com: flask user add <usuario>"
@@ -74,7 +76,12 @@ def verify_password(password: str, stored: str | None) -> bool:
 
 def _assert_valid_username(username: str) -> None:
     if not isinstance(username, str) or not USER_PATTERN.match(username):
-        raise UserError('Usuário inválido: use até 64 caracteres entre letras, números, ".", "_", "-" e "@".')
+        raise UserError('Usuário inválido: use até 254 caracteres entre letras, números, ".", "_", "-", "+" e "@".')
+
+
+def assert_valid_email(email: str) -> None:
+    if not isinstance(email, str) or len(email) > 254 or not EMAIL_PATTERN.match(email):
+        raise UserError("E-mail inválido.")
 
 
 def _assert_strong_password(password: str) -> None:
@@ -107,16 +114,39 @@ def create_user(username: str, password: str, *, allow_weak_password: bool = Fal
     db.session.commit()
 
 
-def set_password(username: str, password: str) -> None:
-    """Changes the password and ends every open session of the user."""
+def set_password(username: str, password: str, *, keep_session: str | None = None) -> None:
+    """Changes the password and ends the open sessions of the user.
+
+    keep_session (hash of a session token) keeps that one session open: the user who
+    changes their own password stays logged in where they did it.
+    """
     _assert_strong_password(password)
     user = db.session.get(User, username)
     if user is None:
         raise UserError(f'O usuário "{username}" não existe.')
     user.password_hash = hash_password(password)
     user.updated_at = utc_now_iso()
-    db.session.execute(delete(Session).where(Session.username == username))
+    sessions = delete(Session).where(Session.username == username)
+    if keep_session:
+        sessions = sessions.where(Session.token_hash != keep_session)
+    db.session.execute(sessions)
     db.session.commit()
+
+
+def rename_user(username: str, new_username: str) -> None:
+    """Changes the login name. Sessions, favorites, notification state and the "changed by"
+    of records follow the new name (ON UPDATE CASCADE), so nothing is lost."""
+    _assert_valid_username(new_username)
+    if new_username == username:
+        raise UserError("O novo usuário é igual ao atual.")
+    if get_password_hash(username) is None:
+        raise UserError(f'O usuário "{username}" não existe.')
+    if get_password_hash(new_username) is not None:
+        raise UserError(f'O usuário "{new_username}" já existe.')
+    db.session.execute(update(User).where(User.username == username).values(username=new_username, updated_at=utc_now_iso()))
+    db.session.commit()
+    # objetos carregados com o nome antigo não valem mais
+    db.session.expire_all()
 
 
 def remove_user(username: str) -> None:

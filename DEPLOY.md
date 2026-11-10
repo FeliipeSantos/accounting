@@ -110,7 +110,7 @@ O banco do seu computador tem o usuário de desenvolvimento **admin/admin**. Em 
 
 ```bash
 cd /opt/opencontabil/backend
-sudo -u opencontabil .venv/bin/flask user add seu.usuario
+sudo -u opencontabil .venv/bin/flask user add seu@email.com.br
 sudo -u opencontabil .venv/bin/flask user remove admin
 sudo -u opencontabil .venv/bin/flask user list
 ```
@@ -125,7 +125,7 @@ As tabelas são criadas pelas migrations do Alembic, que a equipe gera e aplica 
 ```bash
 cd /opt/opencontabil/backend
 sudo -u opencontabil .venv/bin/flask db upgrade
-sudo -u opencontabil .venv/bin/flask user add seu.usuario
+sudo -u opencontabil .venv/bin/flask user add seu@email.com.br
 ```
 
 ## 5. Serviços (systemd)
@@ -201,12 +201,13 @@ O Nginx entrega só a tela (`index.html` e `assets/`) e a API. Qualquer outro ca
 ```bash
 cd /opt/opencontabil/backend
 sudo -u opencontabil .venv/bin/flask user list
-sudo -u opencontabil .venv/bin/flask user add maria
-sudo -u opencontabil .venv/bin/flask user passwd maria
-sudo -u opencontabil .venv/bin/flask user remove maria
+sudo -u opencontabil .venv/bin/flask user add maria@exemplo.com
+sudo -u opencontabil .venv/bin/flask user passwd maria@exemplo.com
+sudo -u opencontabil .venv/bin/flask user rename maria@exemplo.com maria.souza@exemplo.com
+sudo -u opencontabil .venv/bin/flask user remove maria@exemplo.com
 ```
 
-Trocar a senha ou remover um usuário encerra as sessões abertas dele na hora. Remover um usuário também remove os favoritos dele.
+Trocar a senha ou remover um usuário encerra as sessões abertas dele na hora. Remover um usuário também remove os favoritos dele. Trocar o nome (`rename`) mantém sessões, favoritos e registros, que passam para o novo nome; se o usuário estiver em `REFORMA_USERS`, coloque o novo nome no `.env` e reinicie o serviço. O login é o e-mail da pessoa (use letras minúsculas). Cada usuário também pode trocar o próprio nome, e-mail e senha na tela, em **Meu perfil** (menu do usuário).
 
 ## 8. Confirmar as fontes oficiais a partir da VPS
 
@@ -309,7 +310,7 @@ sudo git clone https://github.com/FeliipeSantos/opencontabil.git /opt/opencontab
 sudo bash /opt/opencontabil/deploy/vps-install.sh /tmp/opencontabil-dados.tar.gz
 ```
 
-O script pergunta o seu nome de usuário e a senha (mínimo 10 caracteres), remove o `admin/admin` do banco copiado e mostra o endereço no fim. Sem o arquivo de dados, o banco começa vazio.
+O script pergunta o seu e-mail de login e a senha (mínimo 10 caracteres), remove o `admin/admin` do banco copiado e mostra o endereço no fim. Sem o arquivo de dados, o banco começa vazio.
 
 **3. Libere a porta 8082 no firewall do provedor.** Na Oracle Cloud: *VCN > Security Lists > Add Ingress Rule*, origem `0.0.0.0/0`, protocolo TCP, porta `8082`.
 

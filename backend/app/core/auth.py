@@ -153,6 +153,10 @@ def login_route():
     password = credentials.get("password")
     name = username.strip() if isinstance(username, str) else ""
     stored = get_password_hash(name) if name else None
+    # o login é o e-mail, guardado em minúsculas: "Ana@Exemplo.com" também entra
+    if stored is None and name and name.lower() != name:
+        name = name.lower()
+        stored = get_password_hash(name)
     ok = verify_password(password if isinstance(password, str) else "", stored or _DUMMY_HASH) and bool(stored)
     if not ok:
         throttle.register_failure(ip, now)

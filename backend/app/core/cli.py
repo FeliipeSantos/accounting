@@ -64,6 +64,14 @@ def passwd_command(username: str) -> None:
     click.echo(f'Senha de "{username}" alterada; as sessões abertas dele foram encerradas.')
 
 
+@user_group.command("rename", help="Troca o nome de login; sessões, favoritos e registros acompanham o novo nome.")
+@click.argument("username")
+@click.argument("new_username")
+def rename_command(username: str, new_username: str) -> None:
+    _run(lambda: users.rename_user(username, new_username))
+    click.echo(f'Usuário "{username}" agora é "{new_username}".')
+
+
 @user_group.command("remove", help="Remove um usuário.")
 @click.argument("username")
 def remove_command(username: str) -> None:

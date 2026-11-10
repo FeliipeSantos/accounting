@@ -109,7 +109,7 @@ const LoginForm = styled(Form)`
   .ant-form-item-label > label {
     color: ${login.label};
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
   }
 ` as typeof Form;
 
@@ -123,7 +123,7 @@ const SubmitButton = styled(Button)`
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
       0 10px 24px -10px rgba(30, 107, 230, 0.7);
-    font-weight: 600;
+    font-weight: 500;
   }
 
   &&&:not(:disabled):hover {
@@ -166,12 +166,12 @@ export function LoginPage({ notice }: { notice: string | null }) {
         </Brand>
         <Card aria-labelledby="login-title">
           <Title id="login-title">Entrar</Title>
-          <Subtitle>Acesse o {BRAND_NAME} com seu usuário e senha.</Subtitle>
+          <Subtitle>Acesse o {BRAND_NAME} com seu e-mail e senha.</Subtitle>
           {error && <ErrorAlert type="error" message={error} showIcon />}
           <LoginForm<LoginValues> layout="vertical" requiredMark={false} onFinish={submit}>
-            <Form.Item label="Usuário" name="username" rules={[{ required: true, message: 'Informe o usuário' }]}>
+            <Form.Item label="E-mail" name="username" rules={[{ required: true, message: 'Informe o e-mail' }]}>
               {/* o limite continua valendo; só o contador não aparece */}
-              <Input autoComplete="username" size="large" maxLength={CHAR_LIMITS.username} autoFocus />
+              <Input autoComplete="username" inputMode="email" size="large" maxLength={CHAR_LIMITS.username} autoFocus />
             </Form.Item>
             <Form.Item label="Senha" name="password" rules={[{ required: true, message: 'Informe a senha' }]}>
               <Input.Password autoComplete="current-password" size="large" maxLength={CHAR_LIMITS.password} />
