@@ -15,6 +15,7 @@ Sistema interno com seis módulos. Na barra de navegação do topo, Publicaçõe
 | `deploy/` | Configuração de produção: Nginx, serviço e timers do systemd |
 | `docs/api-contract.md` | Contrato da API entre a tela e o backend |
 | `DEPLOY.md` | Publicação numa VPS Linux |
+| `DOCKER.md` | Publicação com Docker (`Dockerfile`, `docker-compose.yml`, pasta `docker/`) |
 
 ## Rodar na máquina de desenvolvimento
 

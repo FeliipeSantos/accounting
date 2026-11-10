@@ -1,5 +1,6 @@
 .DS_Store
 .env
+.env.docker
 
 # Dependências e arquivos gerados
 node_modules/
