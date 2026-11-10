@@ -24,9 +24,14 @@ fi
 API_PORT=$(sed -n 's/^PORT=//p' "$APP_DIR/.env")
 # Com PUBLIC_DOMAIN no .env, o site do Nginx vem do nginx-domain.conf (HTTPS);
 # sem ele, do nginx-ip.conf (IP e porta, sem HTTPS).
-PUBLIC_DOMAIN=$(sed -n 's/^PUBLIC_DOMAIN=//p' "$APP_DIR/.env" | tr -d '[:space:]')
+# a última linha vale, como no carregamento do .env pelo systemd
+PUBLIC_DOMAIN=$(sed -n 's/^PUBLIC_DOMAIN=//p' "$APP_DIR/.env" | tail -n 1 | tr -d '[:space:]')
 CERT_DIR=/etc/letsencrypt/live/$PUBLIC_DOMAIN
 if [[ -n "$PUBLIC_DOMAIN" ]]; then
+  [[ "$PUBLIC_DOMAIN" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] ||
+    fail "PUBLIC_DOMAIN inválido no .env: $PUBLIC_DOMAIN"
+  [[ $(grep -c '^PUBLIC_DOMAIN=' "$APP_DIR/.env") -le 1 ]] ||
+    echo "aviso: o .env tem mais de uma linha PUBLIC_DOMAIN; usando a última ($PUBLIC_DOMAIN)"
   # com HTTPS o cookie de sessão volta a exigir HTTPS (a instalação por IP grava false)
   if grep -q '^COOKIE_SECURE=false' "$APP_DIR/.env"; then
     sed -i 's/^COOKIE_SECURE=false/# COOKIE_SECURE=false  (desligado: o acesso agora é por HTTPS)/' "$APP_DIR/.env"
