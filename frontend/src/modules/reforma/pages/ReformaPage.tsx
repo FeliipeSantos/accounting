@@ -1,4 +1,4 @@
-import { CalendarOutlined, LockOutlined, SyncOutlined } from '@ant-design/icons';
+import { CalendarOutlined, SyncOutlined } from '@ant-design/icons';
 import { Alert, Button, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { errorMessage } from '@/core/api/client';
 import { useLoad } from '@/core/hooks/useLoad';
 import { Page } from '@/core/layout/Page';
-import { EmptyState, ErrorState, LoadingState } from '@/core/ui';
+import { ErrorState, LoadingState } from '@/core/ui';
 import { reformaApi } from '@/modules/reforma/api';
 import { DocumentModal } from '@/modules/reforma/components/DocumentModal';
 import { formatDateTime, nextRunText, RUN_STATUS, runOutcome } from '@/modules/reforma/format';
@@ -54,7 +54,7 @@ function lastSyncText(status: Status): string {
   return `Última sincronização ${formatDateTime(status.lastRun.finishedAt ?? status.lastRun.startedAt)} · ${nextRunText(status.schedulerEnabled, status.nextRunAt)}`;
 }
 
-function ReformaContent() {
+export function ReformaPage() {
   const [params, setParams] = useSearchParams();
   const tab: TabKey = TABS.find((t) => t.key === params.get('aba'))?.key ?? 'calendario';
   const [refreshKey, setRefreshKey] = useState(0);
@@ -147,20 +147,4 @@ function ReformaContent() {
       <DocumentModal documentId={openDocument} sourceName={sourceName} kindName={(id) => data.kinds[id] ?? id} onClose={() => setOpenDocument(null)} />
     </Page>
   );
-}
-
-/** Personal module: only the user in REFORMA_USERS gets past this screen. */
-export function ReformaPage() {
-  const access = useLoad(() => reformaApi.access(), []);
-  if (access.error) return <ErrorState message={access.error} onRetry={access.reload} />;
-  if (access.data === undefined) return <LoadingState rows={4} />;
-  if (!access.data)
-    return (
-      <Page title="Calendário" icon={<CalendarOutlined />}>
-        <EmptyState icon={<LockOutlined />} title="Acesso restrito">
-          Este módulo é de uso pessoal e está liberado apenas para o usuário configurado em REFORMA_USERS.
-        </EmptyState>
-      </Page>
-    );
-  return <ReformaContent />;
 }

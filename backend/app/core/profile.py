@@ -6,7 +6,7 @@
     POST /password    { currentPassword, newPassword } -> { user }
     POST /username    { currentPassword, newUsername } -> { user }   (newUsername: e-mail)
 
-profile = { user, name, avatar, createdAt, calendarByName }, where avatar is null (the screen
+profile = { user, name, avatar, createdAt }, where avatar is null (the screen
 shows the initials), { kind: "preset", seed } (illustration drawn by the screen from the seed)
 or { kind: "image", url } (photo uploaded by the user).
 
@@ -89,16 +89,11 @@ def _avatar_json(user: User):
 
 
 def _profile_json(user: User):
-    from app.modules.reforma.access import allowed_users
-
-    users = allowed_users()
     return {
         "user": user.username,
         "name": user.display_name,
         "avatar": _avatar_json(user),
         "createdAt": user.created_at,
-        # o acesso ao Calendário é liberado pelo nome no .env: trocar o nome exige ajustar o .env
-        "calendarByName": bool(users and user.username in users),
     }
 
 

@@ -1,9 +1,8 @@
 """HTTP routes of Calendário, mounted at /api/reforma.
 
-Personal module: every route except /access requires a user allowed by REFORMA_USERS
-(see access.py). The session and the JSON content type are checked before (app.core.http).
+Open to every logged-in user, like the other modules. The session and the JSON content
+type are checked before (app.core.http).
 
-    GET  /access                         -> { allowed }
     GET  /status                         -> sources, last run, schedule, totals
     GET  /runs                           -> latest runs
     GET  /runs/<id>                      -> one run with each source's result
@@ -23,8 +22,8 @@ from flask import Blueprint, current_app, g, request
 
 from app.core.http import json_error, json_response
 from app.modules.intelligence.catalog import SUBJECT_IDS
-from app.modules.reforma import access, monitor, recurring, repository, scheduler
 from app.modules.reforma import events as events_module
+from app.modules.reforma import monitor, recurring, repository, scheduler
 from app.modules.reforma.catalog import KINDS, SOURCE_IDS, SOURCES
 from app.modules.reforma.subjects import subject_list
 
@@ -33,20 +32,6 @@ MANUAL_COOLDOWN_SECONDS = 120
 MAX_LIMIT = 100
 
 bp = Blueprint("reforma", __name__, url_prefix="/api/reforma")
-
-
-@bp.before_request
-def _require_access():
-    if request.path.rstrip("/").endswith("/api/reforma/access"):
-        return None
-    if not access.can_access(getattr(g, "user", None)):
-        return json_error(403, "Acesso restrito ao usuário do módulo Calendário")
-    return None
-
-
-@bp.get("/access")
-def access_route():
-    return json_response({"allowed": access.can_access(getattr(g, "user", None))})
 
 
 def _schedule() -> dict:

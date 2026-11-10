@@ -25,7 +25,6 @@ cp .env.docker.example .env.docker
 
 Ajuste o `.env.docker` (o arquivo explica cada linha). O principal:
 
-- **`REFORMA_USERS`:** o seu e-mail de login, para liberar o Calendário.
 - **`COOKIE_SECURE=false`:** só se for acessar **sem HTTPS** (por exemplo, `http://IP-do-servidor:8080`). Em produção o cookie da sessão só vale em HTTPS; com HTTPS na frente, deixe comentado.
 
 ## 2. Primeiro usuário
@@ -127,4 +126,3 @@ docker compose down
 | `api` reiniciando, log `O usuário de desenvolvimento admin/admin existe neste banco` | O banco veio do desenvolvimento: crie o seu usuário e rode `docker compose run --rm api flask user remove admin` |
 | Login volta para a tela de entrada | Acesso sem HTTPS: use `COOKIE_SECURE=false` no `.env.docker` e `docker compose up -d` |
 | `Permission denied` em `/data` depois de copiar arquivos | Rode o `chown` do passo 2 |
-| Calendário não aparece no menu | Coloque o seu e-mail em `REFORMA_USERS` no `.env.docker` e `docker compose up -d` |

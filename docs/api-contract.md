@@ -86,7 +86,7 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 
 | Método e rota | Resposta |
 |---|---|
-| `GET /api/profile` | `{ user, name, avatar, createdAt, calendarByName }`. `name` é o nome de exibição (`null` sem nome); `calendarByName` é `true` quando o Calendário é liberado para esse nome em `REFORMA_USERS`. |
+| `GET /api/profile` | `{ user, name, avatar, createdAt }`. `name` é o nome de exibição (`null` sem nome). |
 | `PUT /api/profile` `{ name, avatar }` | Salva nome e avatar e devolve o perfil. |
 | `GET /api/profile/avatar` | A foto enviada (`image/png`, `image/jpeg` ou `image/webp`); `404` sem foto. |
 | `POST /api/profile/password` `{ currentPassword, newPassword }` | `200 { user }`. Encerra as outras sessões do usuário e mantém a que fez a troca. |
@@ -187,11 +187,10 @@ Fonte que entra no catálogo depois vem ativada. As escolhas do usuário para as
 
 ## 7. Calendário: `/api/reforma`
 
-Módulo de uso pessoal. Toda rota, exceto `/access`, responde `403 { "error": "Acesso restrito ao usuário do módulo Calendário" }` para quem não está em `REFORMA_USERS` (sem a variável: todos em desenvolvimento, ninguém em produção).
+Liberado para todo usuário conectado, como os outros módulos.
 
 | Rota | Resposta |
 |---|---|
-| `GET /access` | `{ allowed }` (a tela esconde o item do menu quando `false`) |
 | `GET /status` | `{ running, lastRun, schedulerEnabled, runTime, nextRunAt, totals: { documents, versions, newThisMonth, changedThisMonth, pendingAnalysis, pendingFiles }, kinds: { id: nome }, sources: [{ id, name, url, method, note, documents, last }] }` |
 | `GET /runs` | Últimas 30 sincronizações: `[{ id, trigger, requestedBy, startedAt, finishedAt, status, newDocuments, newVersions, filesDownloaded, error }]` |
 | `GET /runs/:id` | Uma sincronização com `sources: [{ sourceId, checkedAt, status, fetched, newDocuments, newVersions, error, durationMs }]` |

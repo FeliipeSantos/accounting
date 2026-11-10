@@ -9,7 +9,6 @@ import { displayName } from '@/core/auth/profile';
 import { buildMenuItems } from '@/core/layout/menuItems';
 import { useLayout } from '@/core/layout/layoutContext';
 import { MobileNav, TopNav } from '@/core/layout/TopNav';
-import { useVisibleModules } from '@/core/layout/useVisibleModules';
 import { SETTINGS_PATH } from '@/core/settings/routes';
 import { countNew, isNew, ITEMS_PER_GROUP, type NotificationGroup, notificationsApi } from '@/core/layout/notifications';
 import { useThemeMode } from '@/core/theme/themeMode';
@@ -395,8 +394,7 @@ export function GlobalHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const activeModule = MODULES.find((m) => location.pathname.startsWith(m.path));
-  const visibleModules = useVisibleModules();
-  const navEntries = useMemo(() => buildMenuItems(visibleModules, MODULE_GROUPS), [visibleModules]);
+  const navEntries = useMemo(() => buildMenuItems(MODULES, MODULE_GROUPS), []);
   const [navOpen, setNavOpen] = useState(false);
   const goToModule = (key: string) => navigate(MODULES.find((m) => m.key === key)?.path ?? '/');
   const groups = useModuleNotifications();

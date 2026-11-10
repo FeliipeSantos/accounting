@@ -15,7 +15,6 @@ function query(filters: Partial<DocumentFilters>, offset: number): string {
 
 export const reformaApi = {
   /** Whether the session user may use this personal module (hides the menu item otherwise). */
-  access: () => apiRequest<{ allowed: boolean }>(`${BASE}/access`).then((r) => r.allowed),
   status: () => apiRequest<Status>(`${BASE}/status`),
   runs: () => apiRequest<SyncRun[]>(`${BASE}/runs`),
   run: (id: string) => apiRequest<SyncRun>(`${BASE}/runs/${encodeURIComponent(id)}`),

@@ -19,7 +19,6 @@ import { projectsSearch } from '@/modules/projects/search';
 import { RECEIPTS_PATH } from '@/modules/receipts/format';
 import { receiptsRoutes } from '@/modules/receipts/routes';
 import { receiptsSearch } from '@/modules/receipts/search';
-import { reformaApi } from '@/modules/reforma/api';
 import { reformaRoutes } from '@/modules/reforma/routes';
 import { CALENDAR_PATH, reformaSearch } from '@/modules/reforma/search';
 
@@ -35,8 +34,6 @@ export interface ModuleDefinition {
   routes: RouteObject[];
   /** Search of the module (not shown for now: the header search was removed; each module will place its own). */
   search?: ModuleSearch;
-  /** Restricted module: shown in the menu only when this resolves to true for the session user. */
-  checkAccess?: () => Promise<boolean>;
   /** Key of the navigation group that holds this module (MODULE_GROUPS). */
   group?: string;
 }
@@ -83,7 +80,6 @@ export const MODULES: ModuleDefinition[] = [
     path: CALENDAR_PATH,
     routes: reformaRoutes,
     search: reformaSearch,
-    checkAccess: reformaApi.access,
     group: 'inteligencia-contabil',
   },
   { key: 'projects', label: 'Portal de Projetos', icon: <FileTextOutlined />, path: '/projetos', routes: projectsRoutes, search: projectsSearch },

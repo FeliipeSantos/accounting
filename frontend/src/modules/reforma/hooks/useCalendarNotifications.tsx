@@ -64,7 +64,7 @@ function upcomingItems(events: CalendarEvent[], today: string): NotificationItem
 }
 
 /** Calendário alerts for the notification center: rules that may have changed, obligations
- * published this week and deadlines of the next 7 days (null while loading or without access). */
+ * published this week and deadlines of the next 7 days (null while loading). */
 export function useCalendarNotifications(): NotificationGroup | null {
   const [group, setGroup] = useState<NotificationGroup | null>(null);
 
@@ -72,8 +72,6 @@ export function useCalendarNotifications(): NotificationGroup | null {
     let active = true;
     const load = async () => {
       try {
-        // módulo pessoal: quem não tem acesso não recebe os avisos
-        if (!(await reformaApi.access())) return;
         const today = isoDay(new Date());
         const [status, due, published] = await Promise.all([
           reformaApi.status(),

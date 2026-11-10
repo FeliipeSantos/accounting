@@ -38,7 +38,7 @@ app/
     intelligence/  Publicações (tabelas intel_): catálogo, coletores,
                    classificador, texto completo e pontos principais (fulltext,
                    keypoints), monitor, agendamento, rotas e comandos
-    reforma/       Calendário, uso pessoal (tabelas reforma_): fontes da
+    reforma/       Calendário (tabelas reforma_): fontes da
                    Reforma Tributária, documentos e versões, PDFs oficiais e sincronização
 run.py             servidor de desenvolvimento e testes
 wsgi.py            entrada de produção (gunicorn, configurado em gunicorn.conf.py)

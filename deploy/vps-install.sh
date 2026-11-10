@@ -98,10 +98,7 @@ step "Tela (React)"
 chown -R "root:$SERVICE_USER" "$APP_DIR"
 
 step "Configuração (.env)"
-APP_USER=""
 if [[ ! -f "$APP_DIR/.env" ]]; then
-  read -rp "Nome do seu usuário de acesso (ex.: felipe): " APP_USER
-  [[ "$APP_USER" =~ ^[A-Za-z0-9._-]{3,64}$ ]] || fail "usuário inválido (use letras, números, ponto, hífen; 3 a 64)"
   cat > "$APP_DIR/.env" <<EOF
 # Gerado pelo deploy/vps-install.sh. Veja .env.example para todas as opções.
 APP_ENV=production
@@ -115,14 +112,11 @@ BACKUP_KEEP=7
 SESSION_TTL_HOURS=8
 # acesso por http://IP:$PUBLIC_PORT, sem HTTPS: o cookie de sessão não pode exigir HTTPS
 COOKIE_SECURE=false
-# usuários com acesso ao Calendário
-REFORMA_USERS=$APP_USER
 EOF
   chown "root:$SERVICE_USER" "$APP_DIR/.env"
   chmod 640 "$APP_DIR/.env"
 else
   echo ".env já existe: mantido"
-  APP_USER=$(sed -n 's/^REFORMA_USERS=\([^,]*\).*/\1/p' "$APP_DIR/.env")
 fi
 
 step "Dados"
@@ -136,7 +130,11 @@ chown -R "$SERVICE_USER:$SERVICE_USER" "$DATA_DIR"
 find "$DATA_DIR" -maxdepth 1 -name 'app.db*' -exec chmod 640 {} +
 as_app db upgrade
 
-if [[ -n "$APP_USER" ]] && ! as_app user list | grep -q "^$APP_USER "; then
+# primeiro acesso: sem nenhum usuário além do admin de desenvolvimento, cria o seu (o login é o e-mail)
+if ! as_app user list | grep -v '^admin ' | grep -q '(criado em'; then
+  read -rp "Seu e-mail de login: " APP_USER
+  APP_USER=$(printf '%s' "$APP_USER" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+  [[ "$APP_USER" =~ ^[a-z0-9._+-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$ ]] || fail "e-mail inválido: $APP_USER"
   echo "Crie a senha de \"$APP_USER\" (mínimo 10 caracteres):"
   as_app user add "$APP_USER"
 fi

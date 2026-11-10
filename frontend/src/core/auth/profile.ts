@@ -9,8 +9,6 @@ export interface Profile {
   name: string | null;
   avatar: ProfileAvatar;
   createdAt: string;
-  /** The Calendário is released by this name in REFORMA_USERS (.env): renaming needs the .env updated. */
-  calendarByName: boolean;
 }
 
 /** Avatar sent on save: keep the uploaded photo, send a new one, an illustration or none. */

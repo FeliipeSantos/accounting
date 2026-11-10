@@ -1,5 +1,5 @@
 import { CameraOutlined, CheckCircleFilled, EditOutlined, KeyOutlined, UserOutlined } from '@ant-design/icons';
-import { Alert, App, Button, Form, Input, Modal } from 'antd';
+import { App, Button, Form, Input, Modal } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
@@ -195,10 +195,6 @@ const Hint = styled.div`
   color: ${colors.textSubtle};
 `;
 
-const CalendarNotice = styled(Alert)`
-  margin-bottom: 16px;
-`;
-
 const LinkButton = styled(Button)`
   &&& {
     padding-inline: 0;
@@ -376,14 +372,6 @@ function EditProfileModal({ profile, open, onClose, onSaved }: EditProfileModalP
 
         {renaming && (
           <>
-            {profile.calendarByName && (
-              <CalendarNotice
-                type="warning"
-                showIcon
-                message="O Calendário é liberado pelo e-mail de login"
-                description={`O arquivo .env do servidor libera o Calendário para "${profile.user}" (REFORMA_USERS). Depois de trocar o e-mail, coloque o novo nesse arquivo e reinicie o servidor; até lá, o Calendário não aparece para você.`}
-              />
-            )}
             <Form.Item
               label="Senha atual"
               name="currentPassword"

@@ -207,7 +207,7 @@ sudo -u opencontabil .venv/bin/flask user rename maria@exemplo.com maria.souza@e
 sudo -u opencontabil .venv/bin/flask user remove maria@exemplo.com
 ```
 
-Trocar a senha ou remover um usuário encerra as sessões abertas dele na hora. Remover um usuário também remove os favoritos dele. Trocar o nome (`rename`) mantém sessões, favoritos e registros, que passam para o novo nome; se o usuário estiver em `REFORMA_USERS`, coloque o novo nome no `.env` e reinicie o serviço. O login é o e-mail da pessoa (use letras minúsculas). Cada usuário também pode trocar o próprio nome, e-mail e senha na tela, em **Meu perfil** (menu do usuário).
+Trocar a senha ou remover um usuário encerra as sessões abertas dele na hora. Remover um usuário também remove os favoritos dele. Trocar o nome (`rename`) mantém sessões, favoritos e registros, que passam para o novo nome. O login é o e-mail da pessoa (use letras minúsculas). Cada usuário também pode trocar o próprio nome, e-mail e senha na tela, em **Meu perfil** (menu do usuário).
 
 ## 8. Confirmar as fontes oficiais a partir da VPS
 
