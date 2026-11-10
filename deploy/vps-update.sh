@@ -22,7 +22,8 @@ if [[ ! -d "$APP_DIR" && -d /opt/project-accounting ]]; then
   fail "esta VPS ainda usa o nome antigo; rode uma vez: sudo bash /opt/project-accounting/deploy/vps-rename.sh"
 fi
 API_PORT=$(sed -n 's/^PORT=//p' "$APP_DIR/.env")
-PUBLIC_PORT=$(sed -n 's/^ *listen \([0-9]*\);/\1/p' "$NGINX_SITE" | head -1)
+PUBLIC_PORT=$(sed -n 's/^ *listen \([0-9]*\)[ ;].*/\1/p' "$NGINX_SITE" | head -1)
+[[ -n "$PUBLIC_PORT" ]] || fail "não encontrei a porta em $NGINX_SITE"
 
 step "Backup do banco"
 as_app db-backup
@@ -51,6 +52,11 @@ systemctl daemon-reload
 systemctl enable -q opencontabil-api opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
 systemctl restart opencontabil-api
 systemctl start opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
+# o site padrão do Nginx ("Welcome to nginx") na mesma porta também é default_server: sai da frente
+if [[ -L /etc/nginx/sites-enabled/default ]] && grep -qE "listen +(\[::\]:)?${PUBLIC_PORT} +default_server" /etc/nginx/sites-enabled/default; then
+  rm -f /etc/nginx/sites-enabled/default
+  echo "site padrão do Nginx desativado (ocupava a porta $PUBLIC_PORT); continua em /etc/nginx/sites-available/default"
+fi
 sed -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-ip.conf" > "$NGINX_SITE"
 nginx -t && systemctl reload nginx
 
@@ -58,5 +64,10 @@ for _ in $(seq 1 20); do
   curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz" >/dev/null && break
   sleep 1
 done
-curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz" >/dev/null || fail "não respondeu; veja: sudo journalctl -u opencontabil-api -n 40"
+if ! curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz" >/dev/null; then
+  # o backend responde direto, mas não pelo Nginx: outro site atende a mesma porta
+  curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null &&
+    fail "o backend responde, mas o Nginx da porta $PUBLIC_PORT não chega nele; veja os sites dessa porta: sudo grep -Rn \"listen\" /etc/nginx/sites-enabled/"
+  fail "não respondeu; veja: sudo journalctl -u opencontabil-api -n 40"
+fi
 step "Atualizado e no ar na porta $PUBLIC_PORT"

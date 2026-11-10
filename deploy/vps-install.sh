@@ -158,6 +158,11 @@ done
 curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null || fail "o backend não respondeu; veja: sudo journalctl -u opencontabil-api -n 40"
 
 step "Nginx na porta $PUBLIC_PORT"
+# o site padrão do Nginx ("Welcome to nginx") na mesma porta também é default_server: sai da frente
+if [[ -L /etc/nginx/sites-enabled/default ]] && grep -qE "listen +(\[::\]:)?${PUBLIC_PORT} +default_server" /etc/nginx/sites-enabled/default; then
+  rm -f /etc/nginx/sites-enabled/default
+  echo "site padrão do Nginx desativado (ocupava a porta $PUBLIC_PORT); continua em /etc/nginx/sites-available/default"
+fi
 sed -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-ip.conf" > "$NGINX_SITE"
 ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/opencontabil-ip
 nginx -t
