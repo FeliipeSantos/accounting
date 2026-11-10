@@ -10,7 +10,7 @@ import type { Source, Status, SyncRun } from '@/modules/reforma/types';
 import { colors, fontSize } from '@/theme';
 
 const Name = styled.a`
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.navy};
 `;
 

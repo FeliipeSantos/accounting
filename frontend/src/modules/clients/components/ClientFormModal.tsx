@@ -19,7 +19,7 @@ const Section = styled(Divider)`
   &&& {
     margin: 4px 0 14px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: ${colors.textMuted};

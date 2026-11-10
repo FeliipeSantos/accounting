@@ -11,7 +11,7 @@ import type { DocumentFilters, DocumentSummary, Status } from '@/modules/reforma
 import { colors, fontSize } from '@/theme';
 
 const DocTitle = styled.div`
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.navy};
   overflow-wrap: anywhere;
 `;
@@ -32,7 +32,7 @@ const Numeric = styled.span`
 
 const Label = styled.span`
   font-size: ${fontSize.support}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textDark};
 `;
 

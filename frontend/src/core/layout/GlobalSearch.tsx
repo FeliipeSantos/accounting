@@ -44,7 +44,7 @@ const OptionTexts = styled.span`
 
   b {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${colors.textDark};
     overflow: hidden;
     text-overflow: ellipsis;
@@ -62,7 +62,7 @@ const OptionTexts = styled.span`
 
 const AllResults = styled.span`
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.blue};
   overflow: hidden;
   text-overflow: ellipsis;

@@ -27,7 +27,7 @@ const Number = styled.span`
   display: grid;
   place-items: center;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.blue};
   background: ${colors.blueSelected};
 `;
@@ -53,7 +53,7 @@ const CnpjBox = styled.div`
   border: 1px solid ${colors.border};
   border-radius: ${radius.field}px;
   background: ${colors.bgSubtle};
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 `;
 
@@ -80,7 +80,7 @@ const Drop = styled(Upload.Dragger)`
 
   .ant-upload-text {
     font-size: 14px !important;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .ant-upload-hint {

@@ -48,7 +48,7 @@ const DateTile = styled.span`
 
   b {
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 
@@ -65,7 +65,7 @@ const Texts = styled.span`
   flex-direction: column;
 
   b {
-    font-weight: 600;
+    font-weight: 500;
     color: ${colors.textDark};
     font-size: 13.5px;
     overflow: hidden;
@@ -84,7 +84,7 @@ const Chip = styled.span<{ $tone: Tone }>`
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   background: ${({ $tone }) => tones[$tone].bg};
   color: ${({ $tone }) => tones[$tone].fg};

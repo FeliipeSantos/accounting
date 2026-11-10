@@ -48,7 +48,7 @@ const CardTitle = styled.span`
   align-items: center;
   gap: 10px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.navy};
 `;
 

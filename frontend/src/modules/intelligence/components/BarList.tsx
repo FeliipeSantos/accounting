@@ -76,7 +76,7 @@ const Fill = styled.span<{ $percent: number }>`
 
 const Value = styled.span`
   text-align: right;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 `;
 

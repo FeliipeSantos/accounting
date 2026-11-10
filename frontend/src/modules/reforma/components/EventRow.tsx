@@ -47,12 +47,12 @@ const DateBox = styled.span<{ $tone: keyof typeof iconTones }>`
 
   strong {
     font-size: 17px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   small {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
   }
 `;
@@ -75,7 +75,7 @@ const Texts = styled.span`
 
 const Name = styled.span`
   font-size: ${fontSize.support}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.navy};
   overflow: hidden;
   text-overflow: ellipsis;

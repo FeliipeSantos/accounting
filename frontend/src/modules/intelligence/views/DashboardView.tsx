@@ -39,7 +39,7 @@ const CardLink = styled(Button)`
     height: auto;
     padding: 0;
     font-size: ${fontSize.support}px;
-    font-weight: 600;
+    font-weight: 500;
   }
 `;
 

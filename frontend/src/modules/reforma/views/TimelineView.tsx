@@ -40,7 +40,7 @@ const Narrow = styled(Select)`
 const Month = styled.h3`
   margin: 0 0 4px;
   font-size: ${fontSize.body}px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.navy};
 
   span {

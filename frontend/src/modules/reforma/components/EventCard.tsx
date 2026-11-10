@@ -19,7 +19,7 @@ const Card = styled.article<{ $tone: keyof typeof tones }>`
 
 const Kind = styled.span`
   font-size: ${fontSize.label}px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: ${colors.textSubtle};

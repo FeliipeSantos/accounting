@@ -33,7 +33,7 @@ export const TableFrame = styled.div`
 
   .ant-table-thead > tr > th {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }

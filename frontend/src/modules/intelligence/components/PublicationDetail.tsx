@@ -24,7 +24,7 @@ const DetailPrintStyle = createGlobalStyle`
 
 const Meta = styled.span`
   font-size: ${fontSize.label}px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: ${colors.textSubtle};
@@ -47,7 +47,7 @@ const Fields = styled.dl`
 
   dt {
     font-size: ${fontSize.label}px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: ${colors.textSubtle};
@@ -128,7 +128,7 @@ const SummaryBox = styled.div`
 const Headline = styled.p`
   margin: 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
   color: ${colors.navy};
   overflow-wrap: anywhere;
@@ -165,7 +165,7 @@ const Point = styled.li`
 const PointRef = styled.div`
   margin-bottom: 4px;
   font-size: ${fontSize.label}px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   color: ${colors.textSubtle};
 `;
@@ -178,7 +178,7 @@ const PointText = styled.p`
   overflow-wrap: anywhere;
 
   strong {
-    font-weight: 700;
+    font-weight: 600;
     color: ${colors.navy};
     background: ${tones.warning.bg};
     border-radius: 3px;

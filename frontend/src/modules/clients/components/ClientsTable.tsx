@@ -12,7 +12,7 @@ const Name = styled.button`
   border: none;
   padding: 0;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textDark};
   text-align: left;
   cursor: pointer;
@@ -54,7 +54,7 @@ const StyledTable = styled(Table<Client>)`
   .ant-table-thead > tr > th {
     background: transparent;
     color: ${colors.textDark};
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
   }
 

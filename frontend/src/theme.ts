@@ -137,7 +137,7 @@ const darkScheme: Scheme = {
     blue: '#3B82F6',
     blueHover: '#60A0FA',
     blueSelected: 'rgba(59, 130, 246, 0.16)',
-    textDark: '#E6EBF2',
+    textDark: '#D8DFE8',
     textMuted: '#9AA6B8',
     textSubtle: '#76839A',
     border: '#232E40',
@@ -291,7 +291,7 @@ function buildAntdTheme(scheme: Scheme, dark: boolean): ThemeConfig {
       fontSizeHeading3: fontSize.section,
       fontSizeHeading4: 16,
       fontSizeHeading5: fontSize.cardTitle,
-      fontWeightStrong: 600,
+      fontWeightStrong: 500,
       borderRadius: radius.field,
       borderRadiusSM: radius.badge,
       borderRadiusLG: radius.card,
@@ -323,7 +323,7 @@ function buildAntdTheme(scheme: Scheme, dark: boolean): ThemeConfig {
         collapsedIconSize: 17,
       },
       Button: {
-        fontWeight: 600,
+        fontWeight: 500,
         primaryShadow: 'none',
         defaultShadow: 'none',
         dangerShadow: 'none',
@@ -368,6 +368,8 @@ function buildAntdTheme(scheme: Scheme, dark: boolean): ThemeConfig {
       },
       Modal: {
         titleFontSize: 15,
+        // título do modal fica no peso de título (o "strong" geral é 500)
+        fontWeightStrong: 600,
         contentBg: c.bgElevated,
         headerBg: c.bgElevated,
         footerBg: c.bgElevated,

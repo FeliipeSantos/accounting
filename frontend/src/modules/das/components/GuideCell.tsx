@@ -9,7 +9,7 @@ import type { DasItem } from '@/modules/das/types';
 import { colors } from '@/theme';
 
 const Amount = styled.span`
-  font-weight: 700;
+  font-weight: 500;
   color: ${colors.textDark};
   font-variant-numeric: tabular-nums;
   white-space: nowrap;

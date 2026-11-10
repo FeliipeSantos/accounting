@@ -60,7 +60,7 @@ const CardLink = styled(Button)`
     padding: 0;
     height: auto;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
   }
 `;
 
@@ -69,7 +69,7 @@ const CardTitle = styled.span`
   align-items: center;
   gap: 10px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.navy};
 `;
 

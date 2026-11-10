@@ -11,7 +11,7 @@ const Badge = styled.span<{ $tone: Tone; $dot: boolean }>`
   padding: 0 8px;
   border-radius: ${radius.badge}px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   background: ${({ $tone }) => tones[$tone].bg};

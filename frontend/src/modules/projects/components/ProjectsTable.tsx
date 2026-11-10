@@ -20,7 +20,7 @@ const ProjectName = styled.button`
   border: none;
   padding: 0;
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textDark};
   text-align: left;
   cursor: pointer;
@@ -45,7 +45,7 @@ const Muted = styled.span`
 `;
 
 const Percent = styled.span`
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   min-width: 52px;
 `;
@@ -82,7 +82,7 @@ const StyledTable = styled(Table<Project>)`
   .ant-table-thead > tr > th {
     background: transparent;
     color: ${colors.textDark};
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
   }
 

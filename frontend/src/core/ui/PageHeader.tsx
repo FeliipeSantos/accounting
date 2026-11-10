@@ -17,8 +17,8 @@ const Icon = styled.span`
 const Title = styled(Typography.Title)`
   &&& {
     color: ${colors.navy};
-    font-size: ${fontSize.page}px;
-    font-weight: 700;
+    font-size: ${fontSize.page - 1}px;
+    font-weight: 600;
     letter-spacing: -0.015em;
     line-height: 1.2;
     margin: 0;
@@ -28,7 +28,7 @@ const Title = styled(Typography.Title)`
 
 const Description = styled(Typography.Text)`
   &&& {
-    font-size: ${fontSize.support}px;
+    font-size: ${fontSize.support - 1}px;
   }
 `;
 

@@ -55,7 +55,7 @@ const TitleIcon = styled.span`
 const Title = styled.h2`
   margin: 0;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.navy};
   line-height: 1.25;
 `;
@@ -170,7 +170,7 @@ const Grid = styled.div<{ $loading: boolean }>`
     background: ${colors.bgSubtle};
     border-bottom: 1px solid ${colors.border};
     font-size: ${fontSize.body}px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${colors.textDark};
     text-align: center;
     text-transform: capitalize;
@@ -246,7 +246,7 @@ const DayNumber = styled.div<{ $selected: boolean }>`
     padding: 0 6px;
     border-radius: ${radius.field}px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${({ $selected }) => ($selected ? '#fff' : colors.textDark)};
     background: ${({ $selected }) => ($selected ? colors.blue : 'transparent')};
   }
@@ -296,7 +296,7 @@ const More = styled.li`
     border: 1px solid ${tones.info.border};
     background: ${colors.blueSelected};
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${colors.blue};
   }
 `;
@@ -352,7 +352,7 @@ const PopoverBody = styled.div`
 
 const PopoverLabel = styled.div`
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textMuted};
 `;
 

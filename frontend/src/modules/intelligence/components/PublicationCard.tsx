@@ -79,7 +79,7 @@ const Body = styled.div`
 
 const Title = styled.div`
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   color: ${colors.textDark};
   overflow-wrap: anywhere;
@@ -129,7 +129,7 @@ const SubjectPill = styled.span<{ $tone: IconTone }>`
   background: ${({ $tone }) => iconTones[$tone].bg};
   color: ${({ $tone }) => iconTones[$tone].fg};
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -137,7 +137,7 @@ const SubjectPill = styled.span<{ $tone: IconTone }>`
 
 const GroupNote = styled.span`
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.blue};
 `;
 
@@ -146,14 +146,14 @@ const GroupLink = styled(Button)`
     height: auto;
     padding: 0;
     font-size: 11.5px;
-    font-weight: 600;
+    font-weight: 500;
   }
 `;
 
 const OfficialLink = styled(Typography.Link)`
   &&& {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
   }
 `;
 

@@ -51,13 +51,13 @@ const CategoryCard = styled.button<{ $disabled: boolean }>`
 
 const CategoryName = styled.span<{ $reform: boolean }>`
   font-size: ${fontSize.cardTitle}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${({ $reform }) => ($reform ? colors.blue : colors.navy)};
 `;
 
 const CategoryCount = styled.span`
   font-size: ${fontSize.support}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textDark};
   font-variant-numeric: tabular-nums;
 `;

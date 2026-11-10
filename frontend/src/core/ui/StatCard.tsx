@@ -62,7 +62,7 @@ const Label = styled.span`
 
 const Value = styled.span<{ $tone?: Tone; $small: boolean }>`
   font-size: ${({ $small }) => ($small ? 18 : fontSize.stat)}px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: ${({ $tone }) => ($tone ? tones[$tone].fg : colors.navy)};

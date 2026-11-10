@@ -13,7 +13,7 @@ import { colors, fontSize, radius } from '@/theme';
 
 const Meta = styled.span`
   font-size: ${fontSize.label}px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: ${colors.textSubtle};
@@ -51,7 +51,7 @@ const VersionHead = styled.div`
   align-items: center;
   gap: 8px;
   font-size: ${fontSize.support}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.navy};
 `;
 

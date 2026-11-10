@@ -1,5 +1,5 @@
 import { AlertOutlined, CalendarOutlined, ClockCircleOutlined, FileSearchOutlined } from '@ant-design/icons';
-import { Alert, Empty, Select, Skeleton } from 'antd';
+import { Alert, Empty, Skeleton } from 'antd';
 import { useMemo, useState } from 'react';
 import styled from 'styled-components';
 
@@ -25,16 +25,6 @@ const Columns = styled.div`
   align-items: start;
 `;
 
-const Filters = styled.div`
-  display: flex;
-  justify-content: flex-end;
-`;
-
-const SubjectSelect = styled(Select)`
-  width: 280px;
-  max-width: 100%;
-` as typeof Select;
-
 const Group = styled.section`
   padding: 8px 8px 4px;
 
@@ -46,7 +36,7 @@ const Group = styled.section`
 const GroupTitle = styled.h3`
   margin: 4px 4px 2px;
   font-size: ${fontSize.label}px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: ${colors.textSubtle};
@@ -63,7 +53,7 @@ const ActTitle = styled.a`
   display: block;
   margin: 4px 4px 0;
   font-size: ${fontSize.support}px;
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.navy};
   overflow-wrap: anywhere;
 `;
@@ -95,11 +85,10 @@ interface PanelViewProps {
 
 /** What needs attention now: the deadlines of the next days and the acts published this week. */
 export function PanelView({ status, refreshKey }: PanelViewProps) {
-  const [subjects, setSubjects] = useState<string[]>([]);
   const [open, setOpen] = useState<CalendarEvent | null>(null);
   const today = isoDay(new Date());
-  const ahead = useLoad(() => reformaApi.events(today, addDays(today, AHEAD_DAYS), { subjects }), [today, refreshKey, subjects.join(',')]);
-  const changes = useLoad(() => reformaApi.events(addDays(today, -(WEEK_DAYS - 1)), today, { subjects }, true), [today, refreshKey, subjects.join(',')]);
+  const ahead = useLoad(() => reformaApi.events(today, addDays(today, AHEAD_DAYS)), [today, refreshKey]);
+  const changes = useLoad(() => reformaApi.events(addDays(today, -(WEEK_DAYS - 1)), today, {}, true), [today, refreshKey]);
 
   const week = useMemo(() => (ahead.data ?? []).filter((e) => e.date <= addDays(today, WEEK_DAYS - 1)), [ahead.data, today]);
   const nextDays = useMemo(
@@ -118,20 +107,6 @@ export function PanelView({ status, refreshKey }: PanelViewProps) {
 
   return (
     <>
-      <Filters>
-        <SubjectSelect
-          mode="multiple"
-          allowClear
-          maxTagCount="responsive"
-          placeholder="Todos os assuntos"
-          aria-label="Assunto"
-          value={subjects}
-          onChange={(value) => setSubjects(value as string[])}
-          options={status.subjects.map(({ id, name }) => ({ value: id, label: name }))}
-          optionFilterProp="label"
-        />
-      </Filters>
-
       <StatGrid $min={200}>
         <StatCard icon={<ClockCircleOutlined />} iconTone="orange" label="Nos próximos 7 dias" value={ahead.data ? week.length : '—'} hint="prazos e obrigações" />
         <StatCard icon={<CalendarOutlined />} iconTone="green" label={`Nos próximos ${AHEAD_DAYS} dias`} value={ahead.data ? ahead.data.length : '—'} hint="datas no calendário" />

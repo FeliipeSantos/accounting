@@ -69,7 +69,7 @@ const CardTitle = styled.span`
   align-items: center;
   gap: 10px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: ${colors.navy};
 `;
 
@@ -82,7 +82,7 @@ const ClientFilter = styled(Select<number>)`
 `;
 
 const Name = styled.div`
-  font-weight: 600;
+  font-weight: 500;
   color: ${colors.textDark};
   overflow-wrap: anywhere;
 `;
@@ -111,7 +111,7 @@ const StyledTable = styled(Table<Receipt>)`
   .ant-table-thead > tr > th {
     background: transparent;
     color: ${colors.textDark};
-    font-weight: 600;
+    font-weight: 500;
     font-size: 13px;
   }
 
