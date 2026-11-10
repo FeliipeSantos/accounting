@@ -287,7 +287,7 @@ Para acessar por `http://IP-da-VPS:8082`, sem domínio, numa VPS que já roda ou
 - **Isolamento:** não mexe em outras portas, outros sites do Nginx nem no Node do sistema. Se o Nginx não estava instalado, ele não é ligado na porta 80.
 - **Firewall da VPS:** libera a porta 8082 no `ufw` (se ativo) e no `iptables` das imagens da Oracle Cloud.
 
-> **Sem HTTPS**, o login e os dados trafegam sem criptografia, e o `.env` usa `COOKIE_SECURE=false`. Quando houver um domínio, passe para o Nginx com HTTPS (passo 6).
+> **Sem HTTPS**, o login e os dados trafegam sem criptografia, e o `.env` usa `COOKIE_SECURE=false`. Quando houver um domínio, passe para HTTPS como em [Passar para domínio com HTTPS](#passar-para-domínio-com-https).
 
 **1. No seu computador, gere o pacote de dados** (banco e PDFs do Calendário). Na pasta `backend`:
 
@@ -320,6 +320,35 @@ sudo bash /opt/opencontabil/deploy/vps-update.sh
 ```
 
 Outras portas: `sudo PUBLIC_PORT=8083 API_PORT=8091 bash .../vps-install.sh`.
+
+### Passar para domínio com HTTPS
+
+Com um domínio apontando para a VPS (registro A), a mesma instalação passa a atender por `https://seu-dominio`, nas portas 80 e 443. O `vps-update.sh` decide pelo `.env`: com `PUBLIC_DOMAIN`, grava o site do Nginx a partir do `deploy/nginx-domain.conf` (HTTPS, com HSTS); sem ele, continua no `deploy/nginx-ip.conf`. Assim as atualizações não desfazem o HTTPS.
+
+1. Libere as portas 80 e 443 no firewall do provedor (na Oracle Cloud, como no passo 3).
+2. Instale o certbot e informe o domínio no `.env`:
+
+   ```bash
+   sudo apt-get install -y certbot
+   echo 'PUBLIC_DOMAIN=seu-dominio.com.br' | sudo tee -a /opt/opencontabil/.env
+   ```
+
+3. Rode a atualização. Sem certificado, ela grava só a porta 80 e para, mostrando o comando do certbot:
+
+   ```bash
+   sudo bash /opt/opencontabil/deploy/vps-update.sh
+   sudo certbot certonly --webroot -w /var/www/certbot -d seu-dominio.com.br
+   ```
+
+4. Rode a atualização de novo. Agora ela grava o HTTPS, desliga o `COOKIE_SECURE=false` do `.env` e reinicia:
+
+   ```bash
+   sudo bash /opt/opencontabil/deploy/vps-update.sh
+   ```
+
+5. Quando `https://seu-dominio.com.br` estiver funcionando, feche a porta 8082 no firewall do provedor: o site do Nginx deixa de usá-la.
+
+Se o certificado já foi gerado antes com `certbot --nginx`, pule o passo 3: o certificado continua em `/etc/letsencrypt/live/seu-dominio.com.br/` e a renovação automática segue funcionando.
 
 ## Troca de nome para opencontabil
 
@@ -367,3 +396,4 @@ Para uma VPS que ainda roda a versão anterior em Node (`project-accounting.serv
 | `SESSION_TTL_HOURS` | `8` | Sessão expira após esse tempo sem uso |
 | `INTEL_SCHEDULER` | (vazio) | `off` desliga a coleta automática |
 | `COOKIE_SECURE` | (vazio) | Só `false` para testar produção sem HTTPS |
+| `PUBLIC_DOMAIN` | (vazio) | Só na instalação por script: com um domínio, o `vps-update.sh` configura o Nginx com HTTPS |

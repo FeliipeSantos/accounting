@@ -22,8 +22,20 @@ if [[ ! -d "$APP_DIR" && -d /opt/project-accounting ]]; then
   fail "esta VPS ainda usa o nome antigo; rode uma vez: sudo bash /opt/project-accounting/deploy/vps-rename.sh"
 fi
 API_PORT=$(sed -n 's/^PORT=//p' "$APP_DIR/.env")
-PUBLIC_PORT=$(sed -n 's/^ *listen \([0-9]*\)[ ;].*/\1/p' "$NGINX_SITE" | head -1)
-[[ -n "$PUBLIC_PORT" ]] || fail "não encontrei a porta em $NGINX_SITE"
+# Com PUBLIC_DOMAIN no .env, o site do Nginx vem do nginx-domain.conf (HTTPS);
+# sem ele, do nginx-ip.conf (IP e porta, sem HTTPS).
+PUBLIC_DOMAIN=$(sed -n 's/^PUBLIC_DOMAIN=//p' "$APP_DIR/.env" | tr -d '[:space:]')
+CERT_DIR=/etc/letsencrypt/live/$PUBLIC_DOMAIN
+if [[ -n "$PUBLIC_DOMAIN" ]]; then
+  # com HTTPS o cookie de sessão volta a exigir HTTPS (a instalação por IP grava false)
+  if grep -q '^COOKIE_SECURE=false' "$APP_DIR/.env"; then
+    sed -i 's/^COOKIE_SECURE=false/# COOKIE_SECURE=false  (desligado: o acesso agora é por HTTPS)/' "$APP_DIR/.env"
+    echo "COOKIE_SECURE=false desligado no .env: o acesso agora é por HTTPS"
+  fi
+else
+  PUBLIC_PORT=$(sed -n 's/^ *listen \([0-9]*\)[ ;].*/\1/p' "$NGINX_SITE" | head -1)
+  [[ -n "$PUBLIC_PORT" ]] || fail "não encontrei a porta em $NGINX_SITE"
+fi
 
 step "Backup do banco"
 as_app db-backup
@@ -52,22 +64,43 @@ systemctl daemon-reload
 systemctl enable -q opencontabil-api opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
 systemctl restart opencontabil-api
 systemctl start opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
-# o site padrão do Nginx ("Welcome to nginx") na mesma porta também é default_server: sai da frente
-if [[ -L /etc/nginx/sites-enabled/default ]] && grep -qE "listen +(\[::\]:)?${PUBLIC_PORT} +default_server" /etc/nginx/sites-enabled/default; then
-  rm -f /etc/nginx/sites-enabled/default
-  echo "site padrão do Nginx desativado (ocupava a porta $PUBLIC_PORT); continua em /etc/nginx/sites-available/default"
+if [[ -n "$PUBLIC_DOMAIN" ]]; then
+  mkdir -p /var/www/certbot
+  if [[ -f "$CERT_DIR/fullchain.pem" ]]; then
+    sed -e "s/__DOMAIN__/$PUBLIC_DOMAIN/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-domain.conf" > "$NGINX_SITE"
+  else
+    # sem certificado ainda: só a porta 80, que responde à validação do certbot
+    sed -e "s/__DOMAIN__/$PUBLIC_DOMAIN/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-domain.conf" |
+      sed '/^# --- HTTPS/,$d' > "$NGINX_SITE"
+  fi
+  nginx -t && systemctl reload nginx
+  if [[ ! -f "$CERT_DIR/fullchain.pem" ]]; then
+    fail "falta o certificado de $PUBLIC_DOMAIN. Gere com:
+  sudo certbot certonly --webroot -w /var/www/certbot -d $PUBLIC_DOMAIN
+e rode este script de novo."
+  fi
+  HEALTH_CURL=(curl -fs --resolve "$PUBLIC_DOMAIN:443:127.0.0.1" "https://$PUBLIC_DOMAIN/healthz")
+  WHERE="https://$PUBLIC_DOMAIN"
+else
+  # o site padrão do Nginx ("Welcome to nginx") na mesma porta também é default_server: sai da frente
+  if [[ -L /etc/nginx/sites-enabled/default ]] && grep -qE "listen +(\[::\]:)?${PUBLIC_PORT} +default_server" /etc/nginx/sites-enabled/default; then
+    rm -f /etc/nginx/sites-enabled/default
+    echo "site padrão do Nginx desativado (ocupava a porta $PUBLIC_PORT); continua em /etc/nginx/sites-available/default"
+  fi
+  sed -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-ip.conf" > "$NGINX_SITE"
+  nginx -t && systemctl reload nginx
+  HEALTH_CURL=(curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz")
+  WHERE="a porta $PUBLIC_PORT"
 fi
-sed -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-ip.conf" > "$NGINX_SITE"
-nginx -t && systemctl reload nginx
 
 for _ in $(seq 1 20); do
-  curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz" >/dev/null && break
+  "${HEALTH_CURL[@]}" >/dev/null && break
   sleep 1
 done
-if ! curl -fs "http://127.0.0.1:$PUBLIC_PORT/healthz" >/dev/null; then
-  # o backend responde direto, mas não pelo Nginx: outro site atende a mesma porta
+if ! "${HEALTH_CURL[@]}" >/dev/null; then
+  # o backend responde direto, mas não pelo Nginx: outro site atende o mesmo endereço
   curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null &&
-    fail "o backend responde, mas o Nginx da porta $PUBLIC_PORT não chega nele; veja os sites dessa porta: sudo grep -Rn \"listen\" /etc/nginx/sites-enabled/"
+    fail "o backend responde, mas o Nginx não chega nele por $WHERE; veja os sites ativos: sudo grep -Rn \"listen\\|server_name\" /etc/nginx/sites-enabled/"
   fail "não respondeu; veja: sudo journalctl -u opencontabil-api -n 40"
 fi
-step "Atualizado e no ar na porta $PUBLIC_PORT"
+step "Atualizado e no ar em $WHERE"
