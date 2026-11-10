@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Instala o Project Accounting numa VPS Ubuntu/Debian com acesso por http://IP:8082,
+# Instala o opencontabil numa VPS Ubuntu/Debian com acesso por http://IP:8082,
 # ao lado de outros sistemas (não mexe em outras portas, sites do Nginx nem no Node do sistema).
 #
 # Uso, na VPS (o código vem do GitHub):
-#   sudo git clone https://github.com/FeliipeSantos/accounting.git /opt/project-accounting
-#   sudo bash /opt/project-accounting/deploy/vps-install.sh [/tmp/project-accounting-dados.tar.gz]
+#   sudo git clone https://github.com/FeliipeSantos/opencontabil.git /opt/opencontabil
+#   sudo bash /opt/opencontabil/deploy/vps-install.sh [/tmp/opencontabil-dados.tar.gz]
 #
 # O arquivo opcional traz os dados do seu computador (app.db e reforma-files); sem ele,
 # o banco começa vazio. Pode ser rodado de novo: o que já existe é mantido.
@@ -16,14 +16,14 @@ set -euo pipefail
 
 PUBLIC_PORT="${PUBLIC_PORT:-8082}"
 API_PORT="${API_PORT:-8090}"
-APP_DIR=/opt/project-accounting
-DATA_DIR=/var/lib/project-accounting
+APP_DIR=/opt/opencontabil
+DATA_DIR=/var/lib/opencontabil
 # Node próprio, dentro da pasta do projeto (ignorado pelo git): uma pasta só por projeto em /opt
 NODE_DIR=$APP_DIR/.tools/node
 OLD_NODE_DIR=/opt/project-accounting-node
-SERVICE_USER=project-accounting
-REPO=https://github.com/FeliipeSantos/accounting.git
-NGINX_SITE=/etc/nginx/sites-available/project-accounting-ip
+SERVICE_USER=opencontabil
+REPO=https://github.com/FeliipeSantos/opencontabil.git
+NGINX_SITE=/etc/nginx/sites-available/opencontabil-ip
 BUNDLE="${1:-}"
 
 step() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -38,7 +38,7 @@ step "Conferindo as portas $PUBLIC_PORT e $API_PORT"
 if [[ ! -e "$NGINX_SITE" ]] && port_in_use "$PUBLIC_PORT"; then
   fail "a porta $PUBLIC_PORT já está em uso por outro programa (veja: sudo ss -ltnp | grep :$PUBLIC_PORT)"
 fi
-if ! systemctl is-active --quiet project-accounting-api && port_in_use "$API_PORT"; then
+if ! systemctl is-active --quiet opencontabil-api && port_in_use "$API_PORT"; then
   fail "a porta interna $API_PORT já está em uso; rode com outra, ex.: sudo API_PORT=8091 bash $0"
 fi
 
@@ -146,20 +146,20 @@ if as_app user list | grep -q "^admin "; then
 fi
 
 step "Serviços (systemd)"
-cp "$APP_DIR"/deploy/project-accounting-{api,intel,reforma,backup}.service "$APP_DIR"/deploy/project-accounting-{intel,reforma,backup}.timer /etc/systemd/system/
+cp "$APP_DIR"/deploy/opencontabil-{api,intel,reforma,backup}.service "$APP_DIR"/deploy/opencontabil-{intel,reforma,backup}.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable -q project-accounting-api project-accounting-intel.timer project-accounting-reforma.timer project-accounting-backup.timer
-systemctl restart project-accounting-api
-systemctl start project-accounting-intel.timer project-accounting-reforma.timer project-accounting-backup.timer
+systemctl enable -q opencontabil-api opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
+systemctl restart opencontabil-api
+systemctl start opencontabil-intel.timer opencontabil-reforma.timer opencontabil-backup.timer
 for _ in $(seq 1 20); do
   curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null && break
   sleep 1
 done
-curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null || fail "o backend não respondeu; veja: sudo journalctl -u project-accounting-api -n 40"
+curl -fs "http://127.0.0.1:$API_PORT/healthz" >/dev/null || fail "o backend não respondeu; veja: sudo journalctl -u opencontabil-api -n 40"
 
 step "Nginx na porta $PUBLIC_PORT"
 sed -e "s/__PUBLIC_PORT__/$PUBLIC_PORT/g" -e "s/__API_PORT__/$API_PORT/g" "$APP_DIR/deploy/nginx-ip.conf" > "$NGINX_SITE"
-ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/project-accounting-ip
+ln -sf "$NGINX_SITE" /etc/nginx/sites-enabled/opencontabil-ip
 nginx -t
 systemctl enable -q nginx
 if systemctl is-active --quiet nginx; then systemctl reload nginx; else systemctl start nginx; fi

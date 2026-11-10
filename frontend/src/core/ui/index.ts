@@ -1,7 +1,7 @@
 /** Shared components of the design system: every module builds its screens from these. */
 export { PageHeader } from '@/core/ui/PageHeader';
-export { BrandMark } from '@/core/ui/Brand';
-export { APP_VERSION, BRAND_NAME } from '@/core/ui/constants';
+export { BrandLogo, BrandMark } from '@/core/ui/Brand';
+export { APP_VERSION, BRAND_NAME, VERSION_LABEL } from '@/core/ui/constants';
 export { Chip, IconCircle, PageContainer, StatGrid } from '@/core/ui/primitives';
 export { type BarSegment, ProgressBar, SegmentBar } from '@/core/ui/ProgressBar';
 export { SectionCard } from '@/core/ui/SectionCard';

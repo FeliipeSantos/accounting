@@ -1,35 +1,44 @@
-import { BellOutlined, DownOutlined, LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
+import { BellOutlined, DownOutlined, InfoCircleOutlined, LogoutOutlined, MenuOutlined, MoonOutlined, SettingOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
 import { Badge, Button, Dropdown, Flex, Popover } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { useAuth } from '@/core/auth/authContext';
-import { GlobalSearch } from '@/core/layout/GlobalSearch';
+import { buildMenuItems } from '@/core/layout/menuItems';
 import { useLayout } from '@/core/layout/layoutContext';
+import { MobileNav, TopNav } from '@/core/layout/TopNav';
+import { useVisibleModules } from '@/core/layout/useVisibleModules';
+import { SETTINGS_PATH } from '@/core/settings/routes';
 import { countNew, isNew, ITEMS_PER_GROUP, type NotificationGroup, notificationsApi } from '@/core/layout/notifications';
-import { IconCircle } from '@/core/ui';
-import { MODULES } from '@/modules';
+import { useThemeMode } from '@/core/theme/themeMode';
+import { BRAND_NAME, BrandLogo, IconCircle, VERSION_LABEL } from '@/core/ui';
+import { MODULE_GROUPS, MODULES } from '@/modules';
 import { useModuleNotifications } from '@/modules/notifications';
-import { colors, GLOBAL_HEADER_HEIGHT, palette, shadows } from '@/theme';
+import { chrome, colors, GLOBAL_HEADER_HEIGHT, palette, shadows } from '@/theme';
 
-// barra fixa no topo da área de conteúdo: mesma altura e espaçamento em todas as rotas
+// barra fixa no topo: marca à esquerda, módulos no centro e ações à direita, em todas as rotas
 const Bar = styled.header`
   position: sticky;
   top: 0;
   z-index: 110;
   height: ${GLOBAL_HEADER_HEIGHT}px;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   padding: 0 32px;
-  background: rgba(255, 255, 255, 0.92);
+  background: ${chrome.headerBg};
   backdrop-filter: saturate(160%) blur(8px);
   border-bottom: 1px solid ${colors.border};
 
+  @media (max-width: 1100px) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
   @media (max-width: 768px) {
     padding: 0 16px;
+    gap: 8px;
   }
 
   @media print {
@@ -37,13 +46,40 @@ const Bar = styled.header`
   }
 `;
 
-// botão do menu e busca do módulo aberto, à esquerda
+// marca (e, em telas estreitas, o botão que abre os módulos), à esquerda
 const Start = styled.div`
-  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+`;
+
+const Actions = styled(Flex)`
+  justify-self: end;
+`;
+
+const BrandButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  margin-left: -4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: ${colors.navy};
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid ${colors.blue};
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 480px) {
+    /* em telas bem estreitas fica só o símbolo */
+    & > span > span {
+      display: none;
+    }
+  }
 `;
 
 const IconButton = styled(Button)`
@@ -291,15 +327,21 @@ function NotificationPanel({ groups, seenAt, onOpen }: NotificationPanelProps) {
 
 /**
  * Global header of the application: one instance in the app shell, above every module.
- * Holds the menu button, the search of the open module, the notification center and the user profile; page titles,
+ * Holds the brand, the system modules (a menu button on narrow screens), the theme, notification, settings and profile; page titles,
  * tabs and actions start below it.
  */
 export function GlobalHeader() {
   const { session, logout } = useAuth();
-  const { narrow, toggleMenu } = useLayout();
+  const { resolved: resolvedTheme, setMode: setThemeMode } = useThemeMode();
+  const themeToggleLabel = resolvedTheme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro';
+  const { narrow } = useLayout();
   const navigate = useNavigate();
   const location = useLocation();
   const activeModule = MODULES.find((m) => location.pathname.startsWith(m.path));
+  const visibleModules = useVisibleModules();
+  const navEntries = useMemo(() => buildMenuItems(visibleModules, MODULE_GROUPS), [visibleModules]);
+  const [navOpen, setNavOpen] = useState(false);
+  const goToModule = (key: string) => navigate(MODULES.find((m) => m.key === key)?.path ?? '/');
   const groups = useModuleNotifications();
   const [open, setOpen] = useState(false);
   const user = session.status === 'authenticated' ? session.user : '';
@@ -337,10 +379,23 @@ export function GlobalHeader() {
   return (
     <Bar>
       <Start>
-        {!narrow && <IconButton type="text" icon={<MenuOutlined />} onClick={toggleMenu} aria-label="Recolher ou expandir o menu" title="Recolher ou expandir o menu" />}
-        {activeModule?.search && <GlobalSearch moduleKey={activeModule.key} search={activeModule.search} />}
+        {narrow && <IconButton type="text" icon={<MenuOutlined />} onClick={() => setNavOpen(true)} aria-label="Abrir os módulos" title="Módulos" />}
+        <BrandButton type="button" onClick={() => navigate('/')} aria-label={`${BRAND_NAME}: página inicial`} title="Página inicial">
+          <BrandLogo size={26} />
+        </BrandButton>
       </Start>
-      <Flex align="center" gap={8}>
+      {!narrow && <TopNav entries={navEntries} activeKey={activeModule?.key} onNavigate={goToModule} />}
+      {narrow && <MobileNav entries={navEntries} activeKey={activeModule?.key} onNavigate={goToModule} open={navOpen} onClose={() => setNavOpen(false)} />}
+      <Actions align="center" gap={8}>
+        {/* atalho: alterna direto entre claro e escuro ("Sistema" fica em Ajustes) */}
+        <IconButton
+          type="text"
+          shape="circle"
+          icon={resolvedTheme === 'dark' ? <MoonOutlined /> : <SunOutlined />}
+          onClick={() => setThemeMode(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          aria-label={themeToggleLabel}
+          title={themeToggleLabel}
+        />
         <Popover
           open={open}
           onOpenChange={toggle}
@@ -354,6 +409,15 @@ export function GlobalHeader() {
             <IconButton type="text" shape="circle" icon={<BellOutlined />} aria-label={bellLabel} title={bellLabel} />
           </Badge>
         </Popover>
+        <IconButton
+          type="text"
+          shape="circle"
+          icon={<SettingOutlined />}
+          onClick={() => navigate(SETTINGS_PATH)}
+          aria-label="Ajustes"
+          title="Ajustes"
+          aria-current={location.pathname.startsWith(SETTINGS_PATH) ? 'page' : undefined}
+        />
         <Dropdown
           trigger={['click']}
           placement="bottomRight"
@@ -372,6 +436,9 @@ export function GlobalHeader() {
               },
               { type: 'divider' },
               { key: 'logout', icon: <LogoutOutlined />, label: 'Sair da conta', onClick: () => void logout() },
+              { type: 'divider' },
+              // a versão ficava no rodapé do menu lateral; agora fica aqui (a mesma do login)
+              { key: 'version', icon: <InfoCircleOutlined />, label: VERSION_LABEL, disabled: true },
             ],
           }}
         >
@@ -381,7 +448,7 @@ export function GlobalHeader() {
             <Caret aria-hidden />
           </UserButton>
         </Dropdown>
-      </Flex>
+      </Actions>
     </Bar>
   );
 }

@@ -1,6 +1,6 @@
 import { PUBLICATIONS_BASE, tabPath } from '@/modules/intelligence/paths';
 
-/** Last visited address inside the module, so the side menu returns to the same tab and filters. */
+/** Last visited address inside the module, so the navigation returns to the same tab and filters. */
 const STORAGE_KEY = 'intelligence:lastLocation';
 const BASE = `${PUBLICATIONS_BASE}/`;
 export const DEFAULT_LOCATION = tabPath('painel');

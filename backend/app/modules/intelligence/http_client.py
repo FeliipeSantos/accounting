@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
-USER_AGENT = "project-accounting-monitor/1.0 (+Inteligencia Contabil; coleta diaria de fontes oficiais)"
+USER_AGENT = "opencontabil-monitor/1.0 (+Inteligencia Contabil; coleta diaria de fontes oficiais)"
 DEFAULT_TIMEOUT_MS = 20000
 MAX_BYTES = 5 * 1024 * 1024
 RETRY_DELAY_SECONDS = 2

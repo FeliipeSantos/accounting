@@ -2,12 +2,12 @@
 # Persistent=true: se a VPS estava desligada no horário, a cópia é feita ao ligar.
 
 [Unit]
-Description=Project Accounting — cópia diária do banco
+Description=opencontabil — cópia diária do banco
 
 [Timer]
 OnCalendar=*-*-* 03:00:00
 Persistent=true
-Unit=project-accounting-backup.service
+Unit=opencontabil-backup.service
 
 [Install]
 WantedBy=timers.target

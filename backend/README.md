@@ -1,6 +1,6 @@
 # Backend (Flask)
 
-API do Project Accounting (veja `docs/api-contract.md`). Usa o banco SQLite indicado em `DB_PATH` e o `.env` da raiz do projeto.
+API do opencontabil (veja `docs/api-contract.md`). Usa o banco SQLite indicado em `DB_PATH` e o `.env` da raiz do projeto.
 
 ## Ambiente
 

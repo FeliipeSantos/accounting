@@ -1,5 +1,5 @@
-import { CalendarOutlined, FilterOutlined } from '@ant-design/icons';
-import { Badge, Button, Calendar, Checkbox, Empty, Flex, Modal, Popover, Radio, Select, Skeleton, Tooltip } from 'antd';
+import { CalendarOutlined, FilterOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Badge, Button, Calendar, Checkbox, DatePicker, Empty, Flex, Modal, Popover, Radio, Select, Skeleton, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useMemo, useState } from 'react';
 import styled, { css } from 'styled-components';
@@ -11,7 +11,7 @@ import { DocumentModal } from '@/modules/reforma/components/DocumentModal';
 import { EventCard } from '@/modules/reforma/components/EventCard';
 import { eventSubject, IMPORTANCE, isoDay, KIND_GROUPS, kindGroup, type KindGroup, longDate, monthGridRange, relativeDay } from '@/modules/reforma/format';
 import type { CalendarEvent, EventFilters, Importance, Status } from '@/modules/reforma/types';
-import { colors, fontSize, iconTones, radius, shadows } from '@/theme';
+import { colors, fontSize, iconTones, radius, shadows, tones } from '@/theme';
 
 // dias com eventos aparecem nos próximos 6 meses da lista "O que vem por aí"
 const UPCOMING_DAYS = 180;
@@ -19,7 +19,6 @@ const MAX_IN_CELL = 3;
 // a Reforma vai de 2026 a 2033; um ano antes para o histórico
 const FIRST_YEAR = 2025;
 const LAST_YEAR = 2033;
-const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const GROUP_ORDER: KindGroup[] = ['obrigatoriedade', 'prazo', 'vigencia', 'alteracao'];
 
 const Board = styled.section`
@@ -294,7 +293,7 @@ const More = styled.li`
     display: inline-block;
     padding: 1px 8px;
     border-radius: ${radius.badge}px;
-    border: 1px solid ${colors.blueHover}22;
+    border: 1px solid ${tones.info.border};
     background: ${colors.blueSelected};
     font-size: 11px;
     font-weight: 600;
@@ -389,13 +388,13 @@ const SubjectSelect = styled(Select)`
   width: 230px;
 ` as typeof Select;
 
-const YearSelect = styled(Select)`
-  width: 96px;
-` as typeof Select;
+// mesmo seletor de Recebimentos: setas para o período anterior/seguinte e o mês (ou ano) no meio
+const PeriodPicker = styled(DatePicker)`
+  width: 170px;
+`;
 
-const MonthSelect = styled(Select)`
-  width: 84px;
-` as typeof Select;
+/** Whether a month (or year) is outside the years the calendar covers. */
+const outsideRange = (date: Dayjs) => date.year() < FIRST_YEAR || date.year() > LAST_YEAR;
 
 function shortKind(kind: string): string {
   return (
@@ -588,22 +587,32 @@ export function CalendarView({ status, refreshKey, onOpenDocument }: CalendarVie
                     options={status.subjects.map(({ id, name }) => ({ value: id, label: name }))}
                     optionFilterProp="label"
                   />
-                  <YearSelect
-                    size="large"
-                    aria-label="Ano"
-                    value={value.year()}
-                    onChange={(year) => onChange(value.year(year))}
-                    options={Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, i) => ({ value: FIRST_YEAR + i, label: String(FIRST_YEAR + i) }))}
-                  />
-                  {type === 'month' && (
-                    <MonthSelect
+                  <Flex gap={6} align="center">
+                    <Button
                       size="large"
-                      aria-label="Mês"
-                      value={value.month()}
-                      onChange={(month) => onChange(value.month(month))}
-                      options={MONTHS.map((label, month) => ({ value: month, label }))}
+                      icon={<LeftOutlined />}
+                      disabled={outsideRange(value.subtract(1, type))}
+                      onClick={() => onChange(value.subtract(1, type))}
+                      aria-label={type === 'month' ? 'Mês anterior' : 'Ano anterior'}
                     />
-                  )}
+                    <PeriodPicker
+                      size="large"
+                      picker={type}
+                      format={type === 'month' ? 'MMMM/YYYY' : 'YYYY'}
+                      allowClear={false}
+                      value={value}
+                      disabledDate={outsideRange}
+                      onChange={(date) => date && onChange(date as Dayjs)}
+                      aria-label={type === 'month' ? 'Mês' : 'Ano'}
+                    />
+                    <Button
+                      size="large"
+                      icon={<RightOutlined />}
+                      disabled={outsideRange(value.add(1, type))}
+                      onClick={() => onChange(value.add(1, type))}
+                      aria-label={type === 'month' ? 'Próximo mês' : 'Próximo ano'}
+                    />
+                  </Flex>
                   <Radio.Group
                     size="large"
                     optionType="button"

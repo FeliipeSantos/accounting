@@ -28,7 +28,7 @@ O servidor de testes é iniciado como processo filho. Ele precisa:
 | Sem usuários em desenvolvimento | Cria `admin`/`admin` |
 | `SIGTERM` | Encerra em poucos segundos, esperando até 25 s uma coleta em andamento |
 
-O banco é compartilhado entre as implementações: as tabelas `core_*`, `projects_*` e `intel_*` e o formato dos dados gravados (veja `lib/migrations/`) fazem parte do contrato.
+O banco é compartilhado entre as implementações: as tabelas `core_*`, `projects_*`, `intel_*` e `clients_*` e o formato dos dados gravados (veja `lib/migrations/`) fazem parte do contrato.
 
 ## 2. Regras gerais
 
@@ -190,7 +190,32 @@ Módulo de uso pessoal. Toda rota, exceto `/access`, responde `403 { "error": "A
 
 **Versões:** cada mudança no que a fonte mostra (título, resumo, rótulo de versão, arquivo, texto da página) é uma nova versão; as anteriores nunca são alteradas. O texto lido depois (página do item, PDF) completa a versão sem criar outra.
 
-## 8. Fora do contrato
+## 8. Clientes: `/api/clients`
+
+| Rota | Resposta |
+|---|---|
+| `GET /api/clients` | `200 [cliente, ...]` em ordem alfabética |
+| `POST /api/clients` | `201 cliente`; `400 { "error" }` para dados inválidos; `409 { "error": "Já existe um cliente com este CPF/CNPJ" }` |
+| `PUT /api/clients/:id` | `200 cliente`; mesmos `400` e `409`; `404 { "error": "Cliente não encontrado" }` |
+| `DELETE /api/clients/:id` | `200 { "success": true, "id" }`; `404 { "error": "Cliente não encontrado" }`; `409 { "error" }` quando o cliente tem recebimentos (o histórico financeiro não é apagado). Apaga também o controle de DAS do cliente |
+| `GET /api/clients/receipts?from=AAAA-MM-DD&to=AAAA-MM-DD&clientId=` | `200 { items: [recebimento, ...], balances: [saldo, ...] }`: lançamentos do filtro, do mais recente ao mais antigo; os saldos são sempre de todo o histórico. `400` para data ou cliente inválidos |
+| `POST /api/clients/receipts` | `201 recebimento`; `400 { "error" }` com o motivo |
+| `PUT /api/clients/receipts/:id` | `200 recebimento`; `400`; `404 { "error": "Lançamento não encontrado" }` |
+| `DELETE /api/clients/receipts/:id` | `200 { "success": true, "id" }`; `404` |
+| `GET /api/clients/das?period=AAAA-MM` | `200 { period, dueDate, dueNote, items: [guia, ...] }`: clientes MEI ativos e qualquer cliente com guia na competência, em ordem alfabética; `400 { "error": "Competência inválida (use AAAA-MM)" }` |
+| `PUT /api/clients/das/:clientId/:AAAA-MM` | Corpo `{ "status": "pendente" \| "gerada" \| "paga" }` → `200 { clientId, period, ...campos da guia }`; `400` para situação ou competência inválida; `404` para cliente inexistente. Voltar para `pendente` apaga o PDF guardado |
+| `POST /api/clients/das/:clientId/:AAAA-MM/pdf` | Corpo `{ "content": "<PDF em base64>" }` (PDF de até 1 MB) → `200 { clientId, period, ...campos da guia }`: confere o CNPJ e a competência, lê a guia, guarda o PDF e marca como `gerada` (uma guia `paga` continua paga); `400 { "error" }` com o motivo (não é PDF, outro CNPJ, outra competência...); `404` para cliente inexistente; `413` acima do limite |
+| `GET /api/clients/das/:clientId/:AAAA-MM/pdf` | `200` com o PDF (`application/pdf`, para baixar); `404 { "error": "PDF do DAS não encontrado" }` |
+
+**Cliente:** `{ id, document, kind, name, tradeName, regime, status, state, city, stateRegistration, municipalRegistration, contactName, email, phone, monthlyFee, startDate, notes, createdAt, updatedAt }`. `document` é o CPF ou CNPJ sem pontuação (o CNPJ pode ser alfanumérico) e precisa ter dígitos verificadores válidos; `kind` é `pf` (CPF) ou `pj` (CNPJ). `regime`: `simples`, `mei`, `presumido`, `real`, `imune_isenta`, `pessoa_fisica` (obrigatório para CPF e proibido para CNPJ). `status`: `ativo`, `inativo`. `state`: sigla da UF. `monthlyFee`: em reais, até 2 casas. `startDate`: `AAAA-MM-DD`. No banco: `clients_clients`, com o honorário em centavos.
+
+**Guia (DAS):** `{ clientId, name, tradeName, document, regime, clientStatus, status, generatedAt, paidAt, barcodeLine, amount, dueDate, documentNumber, hasPdf }`. Os campos `barcodeLine` (linha digitável, 48 dígitos, com os dígitos verificadores conferidos pelo padrão FEBRABAN de arrecadação), `amount` (em reais), `dueDate` (pagar até, `AAAA-MM-DD`) e `documentNumber` são lidos do texto do PDF enviado e ficam `null` sem PDF ou quando não puderam ser lidos. Sem registro, a guia está `pendente`; `gerada` guarda a data em que foi marcada; `paga` guarda também a data do pagamento (voltar para `gerada` limpa essa data). `dueDate` é o dia 20 do mês seguinte à competência, adiado para o dia útil seguinte (`dueNote` explica quando houve adiamento). No banco: `clients_das_guides(client_id, period, status, generated_at, paid_at, barcode_line, amount_cents, due_date, document_number, updated_at, updated_by)` e `clients_das_files(client_id, period, file_name, content, sha256, uploaded_at)`, com o PDF dentro do banco (entra no backup diário) e apagado junto com a guia.
+
+**Recebimento:** `{ id, clientId, clientName, receivedOn, serviceTypeId, serviceName, serviceCode, description, period, charged, received, difference, method, notes, createdAt, updatedAt }`. `serviceTypeId` é um tipo de trabalho ativo (ao editar, o tipo que o lançamento já tem vale mesmo se foi desativado depois); o tipo com `code` `outro` exige `description`. `method`: `pix`, `transferencia`, `boleto`, `dinheiro`, `cartao`, `outro` ou `null`. `period`: competência `AAAA-MM` ou `null`. `charged` e `received` em reais, até 2 casas, não negativos e não ambos zero; `difference = received - charged`. **Saldo:** `{ clientId, name, charged, received, balance }`, com `balance` = total recebido − total cobrado (positivo é crédito, negativo é em aberto). No banco: `clients_receipts(id, client_id, received_on, service_type_id, description, period, charged_cents, received_cents, method, notes, created_at, updated_at, updated_by)`, com `client_id` e `service_type_id` em `ON DELETE RESTRICT`.
+
+**Tipo de trabalho:** `{ id, name, code, active, position, uses }`. A lista é gerenciada na tela e começa com 12 tipos criados pela migration (`code`: `honorario_mensal`, `guias`, `nota_fiscal`, `irpf`, `dasn_simei`, `abertura`, `alteracao`, `baixa`, `regularizacao`, `folha`, `consultoria`, `outro`); os criados depois têm `code` `null`. `uses` é o número de recebimentos com o tipo. Rotas: `GET /api/clients/service-types` (todos, na ordem de exibição); `POST` com `{ name }` → `201` (nome de até 80 caracteres, sem repetir ignorando maiúsculas; o novo vai para o fim); `PUT /:id` com `{ name?, active? }` → `200`; `DELETE /:id` → `200`, ou `409` quando o tipo já foi usado (aí ele só pode ser desativado). No banco: `clients_service_types(id, name, code, active, position, created_at, updated_at)`.
+
+## 9. Fora do contrato
 
 - **Arquivos da tela:** o build do React é servido pelo Nginx em produção (`deploy/nginx.conf`) e pelo `run.py` em desenvolvimento.
 - **Detalhes internos:** coletores, classificador, agendamento, backup e o esquema do banco têm testes próprios em pytest (`backend/tests/`). As regras do frontend têm testes em Vitest (`frontend/src/**/*.test.ts`).

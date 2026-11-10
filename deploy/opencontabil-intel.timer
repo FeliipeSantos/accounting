@@ -1,12 +1,12 @@
 # Verifica a cada 5 minutos se a coleta diária está na hora — copie para /etc/systemd/system/
 
 [Unit]
-Description=Project Accounting — verificação da coleta diária
+Description=opencontabil — verificação da coleta diária
 
 [Timer]
 OnBootSec=2min
 OnUnitActiveSec=5min
-Unit=project-accounting-intel.service
+Unit=opencontabil-intel.service
 
 [Install]
 WantedBy=timers.target

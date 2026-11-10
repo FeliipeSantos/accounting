@@ -1,5 +1,5 @@
 {
-  "name": "project-accounting",
+  "name": "opencontabil",
   "private": true,
   "description": "Atalhos de desenvolvimento: npm run dev sobe o backend (Flask) e a tela (React) juntos",
   "scripts": {

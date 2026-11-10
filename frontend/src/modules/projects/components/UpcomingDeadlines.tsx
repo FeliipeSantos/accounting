@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { EmptyState } from '@/core/ui';
 import { deadlineChip, type UpcomingDeadline } from '@/modules/projects/portfolio';
 import type { Project } from '@/modules/projects/types';
-import { colors, palette, radius, type Tone, tones } from '@/theme';
+import { colors, radius, type Tone, tones } from '@/theme';
 
 const MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -38,7 +38,7 @@ const DateTile = styled.span`
   width: 56px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: ${palette.blue50};
+  background: ${colors.blueSelected};
   color: ${colors.navy};
   display: flex;
   flex-direction: column;

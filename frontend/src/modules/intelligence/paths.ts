@@ -1,6 +1,6 @@
 import type { PublicationFilters } from '@/modules/intelligence/types';
 
-/** Address of the module, inside the Inteligência Contábil group of the side menu. */
+/** Address of the module, inside the Inteligência Contábil group of the navigation. */
 export const PUBLICATIONS_BASE = '/inteligencia-contabil/publicacoes';
 
 // a aba da lista usa "lista" no endereço: /inteligencia-contabil/publicacoes/lista

@@ -1,5 +1,5 @@
 import { EditOutlined, FolderOpenOutlined, PrinterOutlined, SaveOutlined } from '@ant-design/icons';
-import { App, Button, Flex, Result } from 'antd';
+import { App, Button, ConfigProvider, Flex, Result } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -17,6 +17,7 @@ import { InfoCards, ReportHeader } from '@/modules/projects/report/ReportHeader'
 import { MiddleRow, Paper, Viewport } from '@/modules/projects/report/styles';
 import { SubActivitiesCard } from '@/modules/projects/report/SubActivitiesCard';
 import type { Project } from '@/modules/projects/types';
+import { antdPaperTheme, LIGHT_SURFACE_CLASS } from '@/theme';
 
 const serialize = (project: Project | null) => JSON.stringify(project);
 
@@ -81,7 +82,7 @@ export function ProjectEditorPage() {
     [message],
   );
 
-  // ao sair da tela (menu lateral, voltar do navegador), as alterações são salvas
+  // ao sair da tela (navegação do topo, voltar do navegador), as alterações são salvas
   useEffect(() => () => void persist(currentRef.current), [persist]);
 
   function toggleEditing() {
@@ -188,19 +189,24 @@ export function ProjectEditorPage() {
         </>
       }
     >
-      <Viewport>
-        <Paper ref={paperRef}>
-          <ReportHeader project={project} editing={editable} onChange={setProject} />
-          <InfoCards project={project} editing={editable} onChange={setProject} />
-          <MiddleRow>
-            <ActivitiesTable project={project} editing={editable} selectedId={selectedId} onSelect={setSelectedId} onChange={setProject} />
-            <SubActivitiesCard project={project} activity={activity} editing={editable} onChange={setProject} onToggle={toggleSub} />
-          </MiddleRow>
-          <AttentionCards project={project} activity={activity} editing={editable} onChange={setProject} />
-          <KanbanBoard project={project} editing={editable} onChange={setProject} />
-        </Paper>
-      </Viewport>
-      <PrintPages ref={printRef} project={project} />
+      {/* o relatório é papel: fica no esquema claro, igual ao que sai na impressão */}
+      <ConfigProvider theme={antdPaperTheme}>
+        <Viewport>
+          <Paper ref={paperRef} className={LIGHT_SURFACE_CLASS}>
+            <ReportHeader project={project} editing={editable} onChange={setProject} />
+            <InfoCards project={project} editing={editable} onChange={setProject} />
+            <MiddleRow>
+              <ActivitiesTable project={project} editing={editable} selectedId={selectedId} onSelect={setSelectedId} onChange={setProject} />
+              <SubActivitiesCard project={project} activity={activity} editing={editable} onChange={setProject} onToggle={toggleSub} />
+            </MiddleRow>
+            <AttentionCards project={project} activity={activity} editing={editable} onChange={setProject} />
+            <KanbanBoard project={project} editing={editable} onChange={setProject} />
+          </Paper>
+        </Viewport>
+        <div className={LIGHT_SURFACE_CLASS}>
+          <PrintPages ref={printRef} project={project} />
+        </div>
+      </ConfigProvider>
     </Page>
   );
 }

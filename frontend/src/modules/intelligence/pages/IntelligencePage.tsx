@@ -156,7 +156,13 @@ function ModuleContent({ tab, catalog, reloadCatalog }: { tab: IntelligenceTab; 
         actions={
           <>
             <LastCollection state={state} running={running} />
-            <RunButton type="primary" icon={<SyncOutlined spin={running} />} disabled={running} onClick={() => void start()} title="Buscar agora novas publicações em todas as fontes ativas">
+            <RunButton
+              type="primary"
+              icon={<SyncOutlined spin={running} />}
+              disabled={running}
+              onClick={() => void start()}
+              title="Buscar agora novas publicações em todas as fontes ativas"
+            >
               {running ? 'Coletando...' : 'Atualizar agora'}
             </RunButton>
           </>
@@ -194,7 +200,7 @@ export function IntelligencePage() {
   const catalog = useLoad(loadCatalog, []);
   const validTab = INTELLIGENCE_TABS.some((t) => t.key === tab);
 
-  // lembra aba e filtros para o menu lateral voltar ao mesmo ponto
+  // lembra aba e filtros para a navegação voltar ao mesmo ponto
   useEffect(() => {
     if (validTab) rememberLocation(pathname, search);
   }, [validTab, pathname, search]);

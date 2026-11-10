@@ -10,7 +10,7 @@ from importlib import import_module
 
 from flask import Flask
 
-MODULES = ["projects", "intelligence", "reforma"]
+MODULES = ["projects", "intelligence", "reforma", "clients"]
 
 
 def register_modules(app: Flask) -> None:

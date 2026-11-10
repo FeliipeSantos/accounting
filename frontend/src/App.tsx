@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { useAuth } from '@/core/auth/authContext';
 import { LoginPage } from '@/core/auth/LoginPage';
 import { AppLayout } from '@/core/layout/AppLayout';
+import { settingsRoutes } from '@/core/settings/routes';
 import { MODULES } from '@/modules';
 
 const Centered = styled.div`
@@ -19,7 +20,13 @@ const router = createHashRouter([
   {
     path: '/',
     element: <AppLayout />,
-    children: [{ index: true, element: <Navigate to={MODULES[0].path} replace /> }, ...MODULES.flatMap((m) => m.routes), { path: '*', element: <Navigate to="/" replace /> }],
+    children: [
+      { index: true, element: <Navigate to={MODULES[0].path} replace /> },
+      ...MODULES.flatMap((m) => m.routes),
+      // telas do sistema (não são módulos da navegação)
+      ...settingsRoutes,
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
   },
 ]);
 

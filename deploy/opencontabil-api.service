@@ -1,20 +1,20 @@
-# systemd unit do backend Flask — copie para /etc/systemd/system/project-accounting-api.service
+# systemd unit do backend Flask — copie para /etc/systemd/system/opencontabil-api.service
 # Veja DEPLOY.md. Em VPS vinda da versão antiga, não roda junto com o
 # project-accounting.service (Node): os dois usariam a porta 8080.
 
 [Unit]
-Description=Project Accounting API (Flask + gunicorn)
+Description=opencontabil API (Flask + gunicorn)
 After=network-online.target
 Wants=network-online.target
 Conflicts=project-accounting.service
 
 [Service]
 Type=simple
-User=project-accounting
-Group=project-accounting
-WorkingDirectory=/opt/project-accounting/backend
-EnvironmentFile=/opt/project-accounting/.env
-ExecStart=/opt/project-accounting/backend/.venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
+User=opencontabil
+Group=opencontabil
+WorkingDirectory=/opt/opencontabil/backend
+EnvironmentFile=/opt/opencontabil/.env
+ExecStart=/opt/opencontabil/backend/.venv/bin/gunicorn -c gunicorn.conf.py wsgi:app
 Restart=always
 RestartSec=5
 # Dá tempo para uma coleta manual em andamento terminar ao parar/reiniciar
@@ -27,7 +27,7 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 # Único lugar onde o processo pode gravar: os dados
-ReadWritePaths=/var/lib/project-accounting
+ReadWritePaths=/var/lib/opencontabil
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true

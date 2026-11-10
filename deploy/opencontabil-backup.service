@@ -1,0 +1,24 @@
+# Cópia diária do banco — copie para /etc/systemd/system/
+# Disparado pelo opencontabil-backup.timer; guarda as últimas BACKUP_KEEP cópias.
+
+[Unit]
+Description=opencontabil — cópia diária do banco
+
+[Service]
+Type=oneshot
+User=opencontabil
+Group=opencontabil
+WorkingDirectory=/opt/opencontabil/backend
+EnvironmentFile=/opt/opencontabil/.env
+ExecStart=/opt/opencontabil/backend/.venv/bin/flask db-backup
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/opencontabil
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true

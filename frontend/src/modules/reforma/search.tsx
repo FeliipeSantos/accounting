@@ -13,7 +13,7 @@ export function isOpenDocumentState(state: unknown): state is OpenDocumentState 
   return typeof state === 'object' && state !== null && typeof (state as { openDocument?: unknown }).openDocument === 'string';
 }
 
-/** Address of the module, inside the Inteligência Contábil group of the side menu. */
+/** Address of the module, inside the Inteligência Contábil group of the navigation. */
 export const CALENDAR_PATH = '/inteligencia-contabil/calendario';
 
 /** The Documentos tab filtered by the term. */

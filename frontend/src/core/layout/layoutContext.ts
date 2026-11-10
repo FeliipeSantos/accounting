@@ -1,14 +1,11 @@
 import { createContext, useContext } from 'react';
 
 export interface LayoutContextValue {
-  /** Side menu showing only the icons. */
-  collapsed: boolean;
-  /** Narrow screen: the menu stays collapsed. */
+  /** Narrow screen: the modules leave the top bar and open from the menu button. */
   narrow: boolean;
-  toggleMenu: () => void;
 }
 
-export const LayoutContext = createContext<LayoutContextValue>({ collapsed: false, narrow: false, toggleMenu: () => undefined });
+export const LayoutContext = createContext<LayoutContextValue>({ narrow: false });
 
 export function useLayout(): LayoutContextValue {
   return useContext(LayoutContext);

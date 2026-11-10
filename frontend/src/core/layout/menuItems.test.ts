@@ -4,7 +4,7 @@ import { buildMenuItems } from '@/core/layout/menuItems';
 
 const GROUPS = [{ key: 'ic', label: 'Inteligência Contábil', icon: null }];
 
-describe('side menu items', () => {
+describe('navigation items', () => {
   it('puts the modules of a group inside it, where its first module was', () => {
     const items = buildMenuItems(
       [

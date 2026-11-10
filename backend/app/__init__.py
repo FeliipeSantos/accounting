@@ -1,4 +1,4 @@
-"""Project Accounting backend (Flask)."""
+"""opencontabil backend (Flask)."""
 
 import logging
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-/** What the side menu needs of a module and of a group (see src/modules). */
+/** What the navigation (top bar and mobile drawer) needs of a module and of a group (see src/modules). */
 export interface MenuModule {
   key: string;
   label: string;
@@ -28,7 +28,7 @@ export type MenuParent = MenuLeaf & { children: MenuLeaf[] };
 export type MenuEntry = MenuLeaf | MenuParent;
 
 /**
- * Items of the side menu, in the order of the registry. Modules of a group go inside it,
+ * Items of the navigation, in the order of the registry. Modules of a group go inside it,
  * and the group takes the place of its first module; a group with no visible module is left out.
  */
 export function buildMenuItems(modules: MenuModule[], groups: MenuGroup[]): MenuEntry[] {
