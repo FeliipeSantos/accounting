@@ -114,3 +114,23 @@ class PublicationText(db.Model):
     text_url: Mapped[str | None] = mapped_column(Text)
     error: Mapped[str | None] = mapped_column(Text)
     fetched_at: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class AiSummary(db.Model):
+    """Resumo IA of a publication, generated on request with the subscription in use (Claude or
+    ChatGPT) and kept for the next openings. status: "pending", "ok" or "error"."""
+
+    __tablename__ = "intel_ai_summaries"
+
+    publication_id: Mapped[str] = mapped_column(Text, ForeignKey("intel_publications.id", ondelete="CASCADE"), primary_key=True)
+    status: Mapped[str] = mapped_column(Text, nullable=False)
+    provider: Mapped[str] = mapped_column(Text, nullable=False)
+    model: Mapped[str | None] = mapped_column(Text)
+    summary: Mapped[str | None] = mapped_column(Text)
+    error: Mapped[str | None] = mapped_column(Text)
+    source_hash: Mapped[str] = mapped_column(Text, nullable=False)
+    prompt_version: Mapped[str] = mapped_column(Text, nullable=False)
+    partial: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    requested_by: Mapped[str | None] = mapped_column(Text, ForeignKey("core_users.username", ondelete="SET NULL", onupdate="CASCADE"))
+    created_at: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[str] = mapped_column(Text, nullable=False)

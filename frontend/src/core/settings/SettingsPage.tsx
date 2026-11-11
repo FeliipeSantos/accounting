@@ -1,11 +1,12 @@
 import { CheckCircleFilled, DesktopOutlined, MoonOutlined, SettingOutlined, SunOutlined, UserOutlined } from '@ant-design/icons';
 import { Tabs } from 'antd';
-import { SlidersHorizontal } from 'lucide-react';
+import { Plug, SlidersHorizontal } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 
 import { Page } from '@/core/layout/Page';
+import { IntegrationsSettings } from '@/core/settings/IntegrationsSettings';
 import { About, Panel, Row } from '@/core/settings/layout';
 import { ProfileSettings } from '@/core/settings/ProfileSettings';
 import { THEME_MODES, type ThemeMode, useThemeMode } from '@/core/theme/themeMode';
@@ -138,7 +139,7 @@ function Preferences() {
 }
 
 // a primeira aba é a que abre sem ?aba= no endereço
-const TABS = ['perfil', 'preferencias'] as const;
+const TABS = ['perfil', 'preferencias', 'integracoes'] as const;
 type SettingsTab = (typeof TABS)[number];
 
 /** Settings of the system. Each tab groups one kind of setting; the open tab is in the address (?aba=preferencias). */
@@ -147,7 +148,7 @@ export function SettingsPage() {
   const requested = params.get('aba');
   const tab: SettingsTab = TABS.find((key) => key === requested) ?? TABS[0];
   return (
-    <Page icon={<SettingOutlined />} title="Ajustes" description="Gerencie a sua experiência no sistema.">
+    <Page icon={<SettingOutlined />} title="Ajustes" description="Gerencie a sua experiência e as integrações do sistema.">
       <Tabs
         activeKey={tab}
         onChange={(key) => setParams(key === TABS[0] ? {} : { aba: key }, { replace: true })}
@@ -168,6 +169,16 @@ export function SettingsPage() {
               </span>
             ),
             children: <Preferences />,
+          },
+          {
+            key: 'integracoes',
+            label: 'Integrações',
+            icon: (
+              <span className="anticon" aria-hidden>
+                <Plug size="1em" strokeWidth={2} />
+              </span>
+            ),
+            children: <IntegrationsSettings />,
           },
         ]}
       />

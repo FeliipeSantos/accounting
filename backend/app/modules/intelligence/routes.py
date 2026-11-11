@@ -13,7 +13,7 @@ from flask import Blueprint, current_app, g, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from app.core.http import json_error, json_response
-from app.modules.intelligence import fulltext, monitor, repository, scheduler
+from app.modules.intelligence import ai_summary, fulltext, monitor, repository, scheduler
 from app.modules.intelligence.catalog import RELEVANCE_LEVELS, SOURCE_IDS, SOURCES, SUBJECT_IDS, SUBJECTS, collectable_ids
 from app.modules.intelligence.classifier import RULES_DESCRIPTION
 from app.modules.intelligence.keypoints import extract_key_points
@@ -175,6 +175,28 @@ def publication(publication_id: str):
     else:
         pub["fullText"] = {"status": stored["status"]}
     return json_response(pub)
+
+
+@bp.get("/publications/<publication_id>/ai-summary")
+def publication_ai_summary(publication_id: str):
+    if not ID_PATTERN.fullmatch(publication_id):
+        return json_error(404, NOT_FOUND)
+    result = ai_summary.get(publication_id)
+    if result is None:
+        return json_error(404, "Publicação não encontrada")
+    return json_response(result)
+
+
+@bp.post("/publications/<publication_id>/ai-summary")
+def request_ai_summary(publication_id: str):
+    # gerado só quando pedido, com a assinatura escolhida em Ajustes > Integrações
+    if not ID_PATTERN.fullmatch(publication_id):
+        return json_error(404, NOT_FOUND)
+    try:
+        result = ai_summary.request_summary(publication_id, g.user)
+    except ai_summary.SummaryError as err:
+        return json_error(err.status, err.message)
+    return json_response(result, 202)
 
 
 @bp.get("/subjects")

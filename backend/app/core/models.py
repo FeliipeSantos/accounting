@@ -1,4 +1,4 @@
-"""Core tables: users and login sessions (prefix core_)."""
+"""Core tables: users, login sessions and installation settings (prefix core_)."""
 
 from sqlalchemy import ForeignKey, Index, Integer, LargeBinary, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,3 +42,15 @@ class NotificationState(db.Model):
 
     username: Mapped[str] = mapped_column(Text, ForeignKey("core_users.username", ondelete="CASCADE", onupdate="CASCADE"), primary_key=True)
     seen_at: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class AppSetting(db.Model):
+    """Setting of the whole installation, changed on the screen (e.g. the AI API key in Integrações).
+    Values are kept as text; secrets are never sent back to the screen."""
+
+    __tablename__ = "core_settings"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True)
+    value: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_by: Mapped[str | None] = mapped_column(Text, ForeignKey("core_users.username", ondelete="SET NULL", onupdate="CASCADE"))

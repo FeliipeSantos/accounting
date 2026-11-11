@@ -4,6 +4,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 
 import { Chip } from '@/core/ui';
 import { intelligenceApi } from '@/modules/intelligence/api';
+import { AiSummaryTab } from '@/modules/intelligence/components/AiSummaryTab';
 import { FavoriteButton, RelevanceBadge } from '@/modules/intelligence/components/PublicationParts';
 import { useIntelligence } from '@/modules/intelligence/context';
 import { formatDate, formatDateTime, formatPublished, RELEVANCE, relevanceSteps, safeOfficialUrl } from '@/modules/intelligence/format';
@@ -506,6 +507,8 @@ export function PublicationDetail({ publication, onClose, onChange }: Publicatio
               defaultActiveKey="summary"
               items={[
                 { key: 'summary', label: 'Resumo', children: <SummaryTab publication={publication} fullText={fullText} /> },
+                // só busca (e só gera, se pedido) quando a aba é aberta
+                { key: 'ai', label: 'Resumo IA', children: <AiSummaryTab publicationId={publication.id} /> },
                 { key: 'official', label: 'Texto oficial', children: <OfficialTextTab publication={publication} fullText={fullText} /> },
                 { key: 'classification', label: 'Classificação', children: <ClassificationTab publication={publication} /> },
               ]}

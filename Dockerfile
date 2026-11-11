@@ -1,7 +1,8 @@
 # opencontabil em Docker — veja DOCKER.md
 #
 # Três alvos (targets), usados pelo docker-compose.yml:
-#   api  backend Flask com gunicorn (também roda os comandos flask e o agendador)
+#   api  backend Flask com gunicorn (também roda os comandos flask e o agendador) e as
+#        ferramentas oficiais de IA (Claude Code e Codex), usadas com a assinatura da pessoa
 #   web  Nginx com a tela (build do React) que repassa /api e /healthz à api
 
 # --- Tela (React) -------------------------------------------------------------
@@ -24,12 +25,28 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     HOST=0.0.0.0 \
     PORT=8080 \
     TZ=America/Sao_Paulo \
-    DB_PATH=/data/app.db
+    DB_PATH=/data/app.db \
+    AI_HOMES_DIR=/data/ai-homes \
+    PATH=/opt/ai-clis/bin:$PATH
 
 # tzdata: a coleta diária e o backup usam a hora de America/Sao_Paulo
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata \
+    && apt-get install -y --no-install-recommends tzdata ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Ferramentas oficiais de IA, sem modificações e com versões fixas: o Resumo IA usa a assinatura
+# da pessoa (Claude Pro/Max ou ChatGPT Plus/Pro), conectada em Ajustes > Integrações. Elas nunca
+# se atualizam sozinhas; para trocar de versão, mude os ARG e reconstrua a imagem.
+ARG CLAUDE_CODE_VERSION=2.1.312
+ARG CODEX_VERSION=0.165.0
+COPY --from=frontend /usr/local/bin/node /usr/local/bin/node
+COPY --from=frontend /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && npm install --global --prefix /opt/ai-clis --no-audit --no-fund \
+       "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" "@openai/codex@${CODEX_VERSION}" \
+    && npm cache clean --force \
+    && claude --version \
+    && codex --version
 
 WORKDIR /app/backend
 COPY backend/requirements.txt ./

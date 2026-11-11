@@ -98,6 +98,22 @@ O banco é compartilhado entre as implementações: as tabelas `core_*`, `projec
 - **Nome:** até 80 caracteres; vazio volta a `null`.
 - **Validação (`400`):** nova senha com pelo menos 10 caracteres; novo login precisa ser um e-mail válido (`E-mail inválido.`), diferente do atual e ainda não usado.
 
+### Integrações: `/api/integrations`
+
+Serviços externos da instalação, em Ajustes > Integrações. O Assistente de IA usa a **assinatura da própria pessoa**: Claude (Pro ou Max) ou ChatGPT (Plus ou Pro), pelas ferramentas oficiais Claude Code e Codex instaladas no servidor. Não há chave de API, e o app nunca vê nem guarda credenciais: o login é feito na página oficial de cada serviço e fica com a ferramenta, na pasta `AI_HOMES_DIR` (padrão: `ai-homes` ao lado do banco).
+
+| Método e rota | Resposta |
+|---|---|
+| `GET /api/integrations/ai` | `{ activeProvider, providers: [{ id, name, plan, installed, connected, account, error }], login }`. `id` é `claude` ou `codex`; `activeProvider` é `claude` até outro ser escolhido; `?fresh=1` confere de novo com as ferramentas (sem isso, a situação vale por 30 segundos) |
+| `PUT /api/integrations/ai/active` `{ provider }` | Escolhe a IA usada pelo Resumo IA. `400` tipo desconhecido |
+| `POST /api/integrations/ai/:provider/login` | Começa o login oficial e devolve o status com `login = { provider, state, url, code, needsCode, message }`. ChatGPT: abrir `url` e digitar `code` (vale 15 minutos). Claude: abrir `url` e colar aqui o código que a página mostra (`needsCode`). `400` se a ferramenta não está instalada; `404` tipo desconhecido |
+| `POST /api/integrations/ai/:provider/login/code` `{ code }` | Claude: envia o código colado. `400` sem login esperando código |
+| `DELETE /api/integrations/ai/:provider/login` | Cancela o login em andamento |
+| `POST /api/integrations/ai/:provider/logout` | Desconecta a assinatura: a ferramenta sai da conta e a pasta do login é apagada |
+
+- **`login.state`:** `starting`, `waiting` (esperando a pessoa na página), `checking`, `success`, `failed` (com `message`) ou `canceled`. A tela consulta o status a cada 2 segundos enquanto o login está aberto.
+- **Uma pessoa:** é para usar só a própria assinatura. Os termos da Anthropic permitem entrar no Claude Code oficial com a própria assinatura, mas não oferecer esse login a outras pessoas; a OpenAI indica o login do ChatGPT para "trusted runners" (máquinas de confiança).
+
 ## 5. Portal de Projetos: `/api/projects`
 
 | Rota | Resposta |
@@ -157,6 +173,19 @@ Fonte que entra no catálogo depois vem ativada. As escolhas do usuário para as
 - **Campos:** `{ id, sourceId, externalId, hash, title, url, publishedAt, publishedTime, excerpt, actType, organ, subjects, relevance, normType, effectiveDate, collectedAt, runId, favorite }`.
 - **`normType`:** `"Projeto de lei"`, `"Comunicado informativo"`, `"Documento técnico"` (Notas Técnicas: leiaute e regras de validação, não são normas), `"Norma vigente"`, `"Norma com vigência futura"` ou `"Norma publicada (vigência não identificada no trecho)"`.
 - **Classificação:** quando existe, inclui `classificationReason: { actType, actLabel, weight, reformBonus, reformSubjects, score, subjects: [{ id, via: "source" | "keywords", terms }] }`.
+
+### Resumo IA (sob demanda)
+
+| Método e rota | Resposta |
+|---|---|
+| `GET /api/intelligence/publications/:id/ai-summary` | `{ status: "none" }` antes de pedir; depois `{ status, provider, providerName, model, summary, partial, error, requestedBy, updatedAt, outdated }`. `404` publicação inexistente |
+| `POST /api/intelligence/publications/:id/ai-summary` | Pede o resumo (ou "Gerar de novo") com a IA escolhida em Integrações: `202` com `status: "pending"`. `400` se a ferramenta não está instalada ou a assinatura não está conectada |
+
+- **Só quando pedido:** nada é gerado na coleta. O resumo fica salvo e aparece nas próximas aberturas; um novo só sai com outro `POST`. Um pedido por vez no servidor.
+- **`status`:** `pending` (a tela consulta a cada 3 segundos), `ok` ou `error` (com `error`). Um `pending` com mais de 10 minutos foi interrompido e aparece como `error`.
+- **`summary`:** `{ tipo, do_que_se_trata, quem_e_afetado, quem_nao_e_afetado, o_que_muda, o_que_fazer, prazos, vigencia, confianca, motivo_confianca, informacoes_faltando }`. Cada ponto traz `origem`: `fonte` (escrito na publicação, com o `trecho` exato) ou `contexto` (conhecimento geral da IA, `trecho` vazio). Um trecho que não está no texto enviado vira `contexto`, e um prazo sem trecho perde a data.
+- **Entrada:** título, órgão, data, fonte, tipo de ato, assuntos, trecho e o texto oficial completo, quando existe (até 120 mil caracteres; acima disso vai a primeira parte e `partial` fica `true`). `outdated` fica `true` quando esse conteúdo mudou depois do resumo.
+- **No banco:** `intel_ai_summaries`, uma linha por publicação.
 
 ### Favoritos (por usuário)
 

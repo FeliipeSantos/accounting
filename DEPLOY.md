@@ -2,6 +2,8 @@
 
 Guia para publicar o opencontabil (Portal de Projetos + Publicações) numa VPS Linux (Ubuntu 24.04 ou Debian 12) com Nginx e HTTPS.
 
+> **Resumo IA:** usa a assinatura da própria pessoa (Claude ou ChatGPT) pelas ferramentas oficiais Claude Code e Codex. Na instalação com Docker elas já vêm na imagem (veja DOCKER.md). Nesta instalação direta, instale-as no servidor (`npm install --global @anthropic-ai/claude-code @openai/codex`, com Node 22 ou mais novo) e aponte `AI_CLAUDE_BIN` / `AI_CODEX_BIN` no `.env` se não estiverem no PATH do serviço. O login fica em `AI_HOMES_DIR` (padrão: `ai-homes` ao lado do banco), fora das cópias do banco; o serviço do systemd precisa poder gravar nessa pasta.
+
 **Arquitetura:**
 - **Entrada:** internet → Nginx (HTTPS, porta 443).
 - **Tela:** o Nginx entrega o build do React (`frontend/dist`).
